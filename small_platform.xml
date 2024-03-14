@@ -1,0 +1,88 @@
+<?xml version='1.0'?>
+<!DOCTYPE platform SYSTEM "https://simgrid.org/simgrid.dtd">
+<platform version="4.1">
+  <zone id="zone0" routing="Full">
+  <!-- CPU spec -->
+    <host id="node0-core0" speed="2Gf"/>
+    <host id="node0-core1" speed="2Gf"/>
+    <host id="node1-core0" speed="2Gf"/>
+    <host id="node1-core1" speed="2Gf"/>
+    <host id="node2-core0" speed="2Gf"/>
+    <host id="node2-core1" speed="2Gf"/>
+    <host id="node3-core0" speed="2Gf"/>
+    <host id="node3-core1" speed="2Gf"/>
+    <host id="node4-core0" speed="2Gf"/>
+    <host id="node4-core1" speed="2Gf"/>
+<!-- Link Spec -->
+    <link id="n0-n1" bandwidth="100MBps" latency="100us"/>
+    <link id="n0-n2" bandwidth="100MBps" latency="100us"/>
+    <link id="n0-n3" bandwidth="100MBps" latency="100us"/>
+    <link id="n0-n4" bandwidth="100MBps" latency="100us"/>
+    <link id="n0:c0-c1" bandwidth="200MBps" latency="10us"/>
+    <link id="n1:c0-c1" bandwidth="200MBps" latency="10us"/>
+    <link id="n2:c0-c1" bandwidth="200MBps" latency="10us"/>
+    <link id="n3:c0-c1" bandwidth="200MBps" latency="10us"/>
+    <link id="n4:c0-c1" bandwidth="200MBps" latency="10us"/>
+    <link id="loopback" bandwidth="500MBps" latency="15us" sharing_policy="FATPIPE"/>
+<!-- link connecting core to itself -->
+    <route src="node0-core0" dst="node0-core0">
+      <link_ctn id="loopback"/>
+    </route>
+    <route src="node0-core1" dst="node0-core1">
+      <link_ctn id="loopback"/>
+    </route>
+    <route src="node1-core0" dst="node1-core0">
+      <link_ctn id="loopback"/>
+    </route>
+    <route src="node1-core1" dst="node1-core1">
+      <link_ctn id="loopback"/>
+    </route>
+    <route src="node2-core0" dst="node2-core0">
+      <link_ctn id="loopback"/>
+    </route>
+    <route src="node2-core1" dst="node2-core1">
+      <link_ctn id="loopback"/>
+    </route>
+    <route src="node3-core0" dst="node3-core0">
+      <link_ctn id="loopback"/>
+    </route>
+    <route src="node3-core1" dst="node3-core1">
+      <link_ctn id="loopback"/>
+    </route>
+    <route src="node4-core0" dst="node4-core0">
+      <link_ctn id="loopback"/>
+    </route>
+    <route src="node4-core1" dst="node4-core1">
+      <link_ctn id="loopback"/>
+    </route>
+  <!-- inter node connection -->
+    <route src="node0-core0" dst="node1-core0">
+      <link_ctn id="n0-n1"/>
+    </route>
+    <route src="node0-core0" dst="node2-core0">
+      <link_ctn id="n0-n2"/>
+    </route>
+    <route src="node0-core0" dst="node3-core0">
+      <link_ctn id="n0-n3"/>
+    </route>
+    <route src="node0-core0" dst="node4-core0">
+      <link_ctn id="n0-n4"/>
+    </route>
+<!-- intra node, inter core connection -->
+    <route src="node0-core0" dst="node0-core1">
+      <link_ctn id="n0:c0-c1"/>
+    </route>
+    <route src="node1-core0" dst="node1-core1">
+      <link_ctn id="n1:c0-c1"/>
+    </route>
+    <route src="node2-core0" dst="node2-core1">
+      <link_ctn id="n2:c0-c1"/>
+    </route>
+    <route src="node3-core0" dst="node3-core1">
+      <link_ctn id="n3:c0-c1"/>
+    </route>
+    <route src="node4-core0" dst="node4-core1">
+      <link_ctn id="n4:c0-c1"/>
+    </route>
+  </zone>
+</platform>

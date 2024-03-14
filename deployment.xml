@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+<!DOCTYPE platform SYSTEM "https://simgrid.org/simgrid.dtd">
+<platform version="4.1">
+  <!-- SlurmCtlD -->
+  <actor host="node0-core0" function="slurmctld">
+    <argument value="jobs.csv"/>
+    <!-- <argument value="node0-core0"/> -->
+    <argument value="node1-core0"/>
+    <argument value="node2-core0"/>
+    <argument value="node3-core0"/>
+    <argument value="node4-core0"/>
+  </actor>
+  <!-- SlurmDs -->
+  <!-- <actor host="node0-core0" function="slurmd">
+    <argument value="node0-core0"/>
+    <argument value="node0-core1"/>
+  </actor> -->
+  <actor host="node1-core0" function="slurmd">
+    <argument value="node0-core0"/>
+    <argument value="node1-core0"/>
+    <argument value="node1-core1"/>
+  </actor>
+  <actor host="node2-core0" function="slurmd">
+    <argument value="node0-core0"/>
+    <argument value="node2-core0"/>
+    <argument value="node2-core1"/>
+  </actor>
+  <actor host="node3-core0" function="slurmd">
+    <argument value="node0-core0"/>
+    <argument value="node3-core0"/>
+    <argument value="node3-core1"/>
+  </actor>
+  <actor host="node4-core0" function="slurmd">
+    <argument value="node0-core0"/>
+    <argument value="node4-core0"/>
+    <argument value="node4-core1"/>
+  </actor>
+</platform>
