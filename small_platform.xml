@@ -3,16 +3,16 @@
 <platform version="4.1">
   <zone id="zone0" routing="Full">
   <!-- CPU spec -->
-    <host id="node0-core0" speed="2Gf"/>
-    <host id="node0-core1" speed="2Gf"/>
-    <host id="node1-core0" speed="2Gf"/>
-    <host id="node1-core1" speed="2Gf"/>
-    <host id="node2-core0" speed="2Gf"/>
-    <host id="node2-core1" speed="2Gf"/>
-    <host id="node3-core0" speed="2Gf"/>
-    <host id="node3-core1" speed="2Gf"/>
-    <host id="node4-core0" speed="2Gf"/>
-    <host id="node4-core1" speed="2Gf"/>
+    <host id="node0-core0" speed="100Mf"/>
+    <host id="node0-core1" speed="100Mf"/>
+    <host id="node1-core0" speed="100Mf"/>
+    <host id="node1-core1" speed="100Mf"/>
+    <host id="node2-core0" speed="100Mf"/>
+    <host id="node2-core1" speed="100Mf"/>
+    <host id="node3-core0" speed="100Mf"/>
+    <host id="node3-core1" speed="100Mf"/>
+    <host id="node4-core0" speed="100Mf"/>
+    <host id="node4-core1" speed="100Mf"/>
 <!-- Link Spec -->
     <link id="n0-n1" bandwidth="100MBps" latency="100us"/>
     <link id="n0-n2" bandwidth="100MBps" latency="100us"/>
