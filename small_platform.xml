@@ -1,6 +1,10 @@
 <?xml version='1.0'?>
 <!DOCTYPE platform SYSTEM "https://simgrid.org/simgrid.dtd">
 <platform version="4.1">
+  <config>
+    <prop id="tracing" value="yes"/>
+    <prop id="tracing/uncategorized" value="yes"/>
+  </config>
   <zone id="zone0" routing="Full">
   <!-- CPU spec -->
     <host id="node0-core0" speed="100Mf"/>

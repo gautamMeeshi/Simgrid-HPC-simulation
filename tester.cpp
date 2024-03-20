@@ -5,7 +5,7 @@ int main(){
     // Job j = getJobFromStr("0,1,10000000,1,(-1)");
     // std::cout<<j;
 
-    std::vector<Job> jobs = ParseJobFile("jobs.csv");
+    std::vector<Job> jobs = parseJobFile("jobs.csv");
     for (Job &j: jobs) {
         std::cout<<j;
         std::cout<<"-----------------\n";

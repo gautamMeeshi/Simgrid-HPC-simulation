@@ -8,7 +8,6 @@
 XBT_LOG_NEW_DEFAULT_CATEGORY(s4u_app_masterworker, "Messages specific for this s4u example");
 namespace sg4 = simgrid::s4u;
 
-
 bool jobExists(std::vector<Job> &jobs, int job_id) {
   if (job_id < 0 ) {
     return true;
@@ -26,7 +25,7 @@ class SlurmCtlD {
   Collects the information from the SlurmDs
   Distributes the queue of work to SlurmD cores
   */
-  
+
   std::string job_file_name      = "";
   long communicate_cost = 100;
   std::vector<sg4::Mailbox*> SlurmDs;
@@ -64,20 +63,21 @@ public:
     return free_cpu_sum;
   }
 
-  void removeJobsWoParents(std::vector<Job> jobs) {
+  void removeJobsWoParents(std::vector<Job> &jobs) {
     std::vector<int> jobs_wo_parents;
     do {
       jobs_wo_parents.clear();
-      for (int i=jobs.size(); i >= 0; i++){
+      for (int i=jobs.size() - 1; i >= 0; i--) {
         for (int j=0; j < jobs[i].p_job_id.size(); j++) {
           if (!jobExists(jobs, jobs[i].p_job_id[j])) {
             jobs_wo_parents.push_back(i);
+            break;
           }
         }
       }
       for (int i=0; i<jobs_wo_parents.size(); i++) {
-        XBT_INFO("Removing job %i, does not have parent", jobs[i].job_id);
-        jobs.erase(jobs.begin() + i);
+        XBT_INFO("Removing job %i, does not have parent", jobs[jobs_wo_parents[i]].job_id);
+        jobs.erase(jobs.begin() + jobs_wo_parents[i]);
       }
     } while (!jobs_wo_parents.empty());
     return;
@@ -106,19 +106,19 @@ public:
     for (int i=0; i < SlurmDs.size(); i++) {
       SlurmDs[i]->put(new Job(), communicate_cost);
     }
-    XBT_INFO("Number of free cpus in total %i", free_cpu_sum);
-    // removeJobs(jobs, free_cpu_sum);
+    XBT_INFO("Total number of CPUs %i", free_cpu_sum);
+    removeJobs(jobs, free_cpu_sum);
 
     while (jobs.size() > 0) {
       // while there are pending jobs
       // find the number of free cpus across all the nodes
       free_cpu_sum = getFreeCpus();
       bool job_distributed = false;
-      XBT_INFO("Number of free cpus in total %i", free_cpu_sum);
+      XBT_DEBUG("Number of free cpus in total %i", free_cpu_sum);
 
       // if there are enough free cpus to execute the job
       if (free_cpu_sum >= jobs[0].num_cpus) {
-        // distrbute the job amoing the nodes
+        // distrbute the job among the nodes
         // currently we are distributing from the start to end
         // round robin or more intelligent criteria can be used
         for (int i=0; i<SlurmDs.size(); i++) {
@@ -204,18 +204,18 @@ public:
       int num_free_cpus = 0;
       
       for (int i=0; i < cpus.size(); i++) {
-        XBT_INFO("Compuatation load %lf on node %d",cpus[i]->get_load(), i);
+        XBT_VERB("Compuatation load %f on node %d",cpus[i]->get_load(), i);
         if (cpus[i]->get_load() == 0.0) {
           num_free_cpus++;
         }
       }
       mymailbox->put(new int(num_free_cpus), communicate_cost);
-      XBT_INFO("Number of free CPUs %i", num_free_cpus);
+      XBT_DEBUG("Number of free CPUs %i", num_free_cpus);
 
       Job *j = mymailbox->get<Job>();
 
       if (j->num_cpus > 0) {
-        XBT_INFO("Executing job %i on %i cpus of computation %f", j->job_id, j->num_cpus, j->computation_cost);
+        XBT_VERB("Executing job %i on %i cpus of computation %f", j->job_id, j->num_cpus, j->computation_cost);
         for (int i=0; i < cpus.size(); i++) {
           if (cpus[i]->get_load() == 0) {
             double computation = j->computation_cost;

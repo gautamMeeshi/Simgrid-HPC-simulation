@@ -9,7 +9,16 @@ Current working design -
     2. Receive the Job Subset (compute volume and the number of CPUs on which it needs to be run).
     3. Execute asynchronously the compute volume on the free CPUs.
 
-TODO -
-  1. Scheduler support to SlurmCtlD process will be provided once basic model is working.
-  2. Power model and configuration tuning has to be Done.
-  3. The topology of interconnection system will be modeled.
+Pre-requisites to run the model.
+  - simgrid library
+    ```
+    sudo apt install libsimgrid-dev
+    ```
+ How to run the model?
+   1. Compile the source files - `make compile`
+   2. Run the model - `make run`
+
+Important links for reference - 
+  1. [SimGrid host energy consumption plugin](https://simgrid.org/doc/latest/Plugins.html#plugin-host-energy).
+  2. This model is inspired by [SimGrid-master-worker](https://simgrid.org/doc/latest/Tutorial_Algorithms.html#discover-the-master-workers) example.
+  3. 
