@@ -6,7 +6,17 @@
 #include "helper.hpp"
 #include "scheduler.hpp"
 
-XBT_LOG_NEW_DEFAULT_CATEGORY(s4u_app_masterworker, "Messages specific for this s4u example");
+class SlurmDmsg {
+public:
+  int free_cpus;
+  std::vector<int> jobs_completed;
+  SlurmDmsg(int fc, std::vector<int> jc) {
+    free_cpus = fc;
+    jobs_completed = jc;
+  }
+};
+
+XBT_LOG_NEW_DEFAULT_CATEGORY(HPC, "Messages specific for this s4u example");
 namespace sg4 = simgrid::s4u;
 
 bool jobExists(std::vector<Job*> jobs, int job_id) {
@@ -27,8 +37,9 @@ class SlurmCtlD {
   Distributes the queue of work to SlurmD cores
   */
 
-  std::string job_file_name      = "";
+  std::string job_file_name = "";
   long communicate_cost = 100;
+  long jobs_remaining = 0;
   std::vector<sg4::Mailbox*> SlurmDs;
   sg4::Mailbox *mymailbox;
   std::vector<Job*> jobs;
@@ -58,14 +69,24 @@ public:
   int getFreeCpus() {
     int free_cpu_sum = 0;
     for (int i=0; i < SlurmDs.size(); i++) {
-      auto msg = SlurmDs[i]->get<int>();
-      resrcs[i].free_cpus = *msg;
+      auto msg = SlurmDs[i]->get<SlurmDmsg>();
+      resrcs[i].free_cpus = msg->free_cpus;
       free_cpu_sum += resrcs[i].free_cpus;
+
+      for (int j=0; j<msg->jobs_completed.size(); j++) {
+        if (msg->jobs_completed[j] != -1) {
+          for (int k=0; k<jobs.size(); k++) {
+            if (jobs[k]->job_id == msg->jobs_completed[j]) {
+              jobs[k]->job_state = COMPLETED;
+            }
+          }
+        }
+      }
     }
     return free_cpu_sum;
   }
 
-  void removeJobsWoParents(std::vector<Job*> jobs) {
+  void removeJobsWoParents() {
     std::vector<int> jobs_wo_parents;
     do {
       jobs_wo_parents.clear();
@@ -85,16 +106,16 @@ public:
     return;
   }
 
-  void removeJobs(std::vector<Job*> jobs, int free_cpu_sum) {
+  void removeJobs(int free_cpu_sum) {
     int total_jobs = jobs.size();
     for (int i = total_jobs-1; i >= 0; i--) {
       if (jobs[i]->num_cpus > free_cpu_sum) {
-        XBT_INFO("Removing job %i", jobs[i]->job_id);
+        XBT_INFO("Removing job %i, not enough resource", jobs[i]->job_id);
         jobs.erase(jobs.begin()+i);
       }
     }
     // remove jobs without parents
-    removeJobsWoParents(jobs);
+    removeJobsWoParents();
   }
 
   void operator()()
@@ -109,16 +130,17 @@ public:
       SlurmDs[i]->put(new Job(), communicate_cost);
     }
     XBT_DEBUG("Total number of CPUs %i", free_cpu_sum);
-    removeJobs(jobs, free_cpu_sum);
+    removeJobs(free_cpu_sum);
+    jobs_remaining = jobs.size();
 
-    while (jobs.size() > 0) {
+    while (jobs_remaining > 0) {
       // while there are pending jobs
       // find the number of free cpus across all the nodes
       free_cpu_sum = getFreeCpus();
       bool job_distributed = false;
       XBT_DEBUG("Number of free cpus in total %i", free_cpu_sum);
 
-      std::vector<Job*> scheduled_jobs = scheduler(jobs, resrcs, scheduler_type);
+      std::vector<Job*> scheduled_jobs = scheduler(jobs, resrcs, scheduler_type, jobs_remaining);
       xbt_assert(scheduled_jobs.size() == SlurmDs.size(),
                  "Scheduler output size not same as the number of SlurmDs");
       for (int i=0; i<SlurmDs.size(); i++) {
@@ -148,6 +170,7 @@ class SlurmD {
   std::vector<sg4::ExecPtr> executions;
   sg4::Mailbox *mymailbox;
   sg4::Mailbox *masterMailBox;
+  std::vector<int> running_job_ids;
 
 public:
   explicit SlurmD(std::vector<std::string> args)
@@ -159,6 +182,7 @@ public:
     for (unsigned int i = 2; i < args.size(); i++) {
       cpus.push_back(sg4::Host::by_name(args[i]));
       executions.push_back(nullptr);
+      running_job_ids.push_back(-1);
     }
 
     XBT_INFO("Got %zu cpus", cpus.size());
@@ -172,17 +196,20 @@ public:
       Get the computation amount
       if computation amount is received then start those executions on the cpus
       */
-      
       // accumulate the cpu info
       int num_free_cpus = 0;
-      
+      std::vector<int> jobs_completed;
       for (int i=0; i < cpus.size(); i++) {
-        XBT_VERB("Compuatation load %f on node %d",cpus[i]->get_load(), i);
+        XBT_VERB("Computation load %f on node %d",cpus[i]->get_load(), i);
         if (cpus[i]->get_load() == 0.0) {
+          if (running_job_ids[i] != -1) {
+            jobs_completed.push_back(running_job_ids[i]);
+            running_job_ids[i] = -1;
+          }
           num_free_cpus++;
         }
       }
-      mymailbox->put(new int(num_free_cpus), communicate_cost);
+      mymailbox->put(new SlurmDmsg(num_free_cpus, jobs_completed), communicate_cost);
       XBT_DEBUG("Number of free CPUs %i", num_free_cpus);
 
       Job *j = mymailbox->get<Job>();
@@ -191,6 +218,7 @@ public:
         XBT_INFO("Executing job %i on %i cpus of computation %f", j->job_id, j->num_cpus, j->computation_cost);
         for (int i=0; i < cpus.size(); i++) {
           if (cpus[i]->get_load() == 0) {
+            running_job_ids[i] = j->job_id;
             double computation = j->computation_cost;
             sg4::ExecPtr exec = sg4::this_actor::exec_init(computation);
             exec->set_host(cpus[i]);

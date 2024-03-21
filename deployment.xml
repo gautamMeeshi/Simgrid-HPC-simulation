@@ -4,17 +4,18 @@
   <!-- SlurmCtlD -->
   <actor host="node0-core0" function="slurmctld">
     <argument value="jobs.csv"/>
-    <!-- <argument value="node0-core0"/> -->
+    <argument value="node0-core0"/>
     <argument value="node1-core0"/>
     <argument value="node2-core0"/>
     <argument value="node3-core0"/>
     <argument value="node4-core0"/>
   </actor>
   <!-- SlurmDs -->
-  <!-- <actor host="node0-core0" function="slurmd">
+  <actor host="node0-core0" function="slurmd">
+    <argument value="node0-core0"/>
     <argument value="node0-core0"/>
     <argument value="node0-core1"/>
-  </actor> -->
+  </actor>
   <actor host="node1-core0" function="slurmd">
     <argument value="node0-core0"/>
     <argument value="node1-core0"/>

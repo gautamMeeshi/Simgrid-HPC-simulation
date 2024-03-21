@@ -54,15 +54,16 @@ std::vector<Job*> getRunnableJobs(std::vector<Job*> &jobs) {
 }
 
 std::vector<Job*> backfill_scheduler(std::vector<Job*> &jobs,
-                                     std::vector<Resource> &resrc) {
-    std::vector<Job*> runnable_jobs = getRunnableJobs(jobs);
+                                     std::vector<Resource> &resrc,
+                                     long &jobs_remaining) {
     std::vector<Job*> res;
     // TODO - complete the function
     return res;
 }
 
-std::vector<Job*> fcfs_scheduler(std::vector<Job*> &jobs, std::vector<Resource> &resrc) {
-    std::vector<Job*> runnable_jobs = getRunnableJobs(jobs);
+std::vector<Job*> fcfs_scheduler(std::vector<Job*> &jobs,
+                                 std::vector<Resource> &resrc,
+                                 long &jobs_remaining) {
     std::vector<Job*> res;
     // Runnable jobs are those that have no parent job pending
     bool job_distributed = false;
@@ -70,10 +71,14 @@ std::vector<Job*> fcfs_scheduler(std::vector<Job*> &jobs, std::vector<Resource> 
     for (int j=0; j<resrc.size(); j++) {
         total_free_cpus += resrc[j].free_cpus;
     }
+    if (jobs.size() == 0 || total_free_cpus < jobs[0]->num_cpus) {
+        for (int i=0; i<resrc.size(); i++) {
+            res.push_back(new Job());
+        }
+        return res;
+    }
     for (int j=0; j<resrc.size(); j++) {
-        if (resrc[j].free_cpus > 0 && !job_distributed && 
-            total_free_cpus >= jobs[0]->num_cpus) {
-
+        if (resrc[j].free_cpus > 0 && !job_distributed) {
             int cpus_to_use = std::min(resrc[j].free_cpus, jobs[0]->num_cpus);
             Job *job_subset = new Job(jobs[0]->job_id, cpus_to_use,
                                       jobs[0]->computation_cost,
@@ -82,7 +87,8 @@ std::vector<Job*> fcfs_scheduler(std::vector<Job*> &jobs, std::vector<Resource> 
             if (cpus_to_use < jobs[0]->num_cpus) {
                 jobs[0]->num_cpus = jobs[0]->num_cpus - cpus_to_use;
             } else {
-                jobs.erase(jobs.begin());
+                jobs[0]->job_state = RUNNING;
+                jobs_remaining--;
                 job_distributed = true;
             }
         } else {
@@ -95,12 +101,14 @@ std::vector<Job*> fcfs_scheduler(std::vector<Job*> &jobs, std::vector<Resource> 
 
 std::vector<Job*> scheduler(std::vector<Job*> &jobs,
                             std::vector<Resource> &resrc,
-                            std::string scheduler_type) {
+                            std::string scheduler_type,
+                            long &jobs_remaining) {
+    std::vector<Job*> runnable_jobs = getRunnableJobs(jobs);
     std::vector<Job*> res;
     if (scheduler_type == "backfill") {
-        res = backfill_scheduler(jobs, resrc);
+        res = backfill_scheduler(runnable_jobs, resrc, jobs_remaining);
     } else {
-        res = fcfs_scheduler(jobs, resrc);
+        res = fcfs_scheduler(runnable_jobs, resrc, jobs_remaining);
     }
     return res;
 }
