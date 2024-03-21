@@ -3,6 +3,10 @@
 #include <fstream>
 #include <vector>
 
+#ifndef HELPER_H // include guard
+#define HELPER_H
+
+
 enum JobState {
   PENDING = 0, // waiting for resources
   RUNNING = 1, // currently running
@@ -35,6 +39,7 @@ public:
     os << "Priority = " << j.priority << '\n';
     os << "Job state = " << j.job_state <<'\n';
     os << "Parent jobs: ";
+    //os << j.p_job_id.size();
     for (int i=0; i< j.p_job_id.size(); i++) {
       os<<j.p_job_id[i]<<',';
     }
@@ -43,7 +48,7 @@ public:
   }
 };
 
-Job getJobFromStr(std::string line) {
+Job* getJobFromStr(std::string line) {
   std::string str = "";
   int ji, nc, prty;
   double cc;
@@ -71,11 +76,12 @@ Job getJobFromStr(std::string line) {
       str+=line[i];
     }
   }
-  return Job(ji, nc, cc, prty, prnt);
+  Job *j = new Job(ji, nc, cc, prty, prnt);
+  return j;
 }
 
-std::vector<Job> parseJobFile(std::string job_file_name) {
-    std::vector<Job> jobs;
+std::vector<Job*> parseJobFile(std::string job_file_name) {
+    std::vector<Job*> jobs;
     std::ifstream inputFile(job_file_name);
     std::string line;
     bool skip = true;
@@ -84,9 +90,12 @@ std::vector<Job> parseJobFile(std::string job_file_name) {
         skip = false;
         continue;
       }
-      jobs.push_back(getJobFromStr(line));
+      Job *j = getJobFromStr(line);
+      jobs.push_back(j);
     }
     // Close the file when done
     inputFile.close();
     return jobs;
 }
+
+#endif
