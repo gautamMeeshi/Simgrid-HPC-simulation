@@ -1,7 +1,7 @@
-#include <unordered_map>
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
 
 #ifndef HELPER_H // include guard
 #define HELPER_H
@@ -80,22 +80,34 @@ Job* getJobFromStr(std::string line) {
   return j;
 }
 
-std::vector<Job*> parseJobFile(std::string job_file_name) {
-    std::vector<Job*> jobs;
-    std::ifstream inputFile(job_file_name);
-    std::string line;
-    bool skip = true;
-    while (std::getline(inputFile, line)) {
-      if (skip) {
-        skip = false;
-        continue;
-      }
-      Job *j = getJobFromStr(line);
-      jobs.push_back(j);
+std::map<int, Job*> parseJobFile(std::string job_file_name) {
+  std::map<int, Job*> jobs;
+  std::ifstream inputFile(job_file_name);
+  std::string line;
+  bool skip = true;
+  while (std::getline(inputFile, line)) {
+    if (skip) {
+      skip = false;
+      continue;
     }
-    // Close the file when done
-    inputFile.close();
-    return jobs;
+    Job *j = getJobFromStr(line);
+    jobs[j->job_id] = j;
+  }
+  // Close the file when done
+  inputFile.close();
+  return jobs;
+}
+
+bool jobExists(std::vector<Job*> jobs, int job_id) {
+  if (job_id < 0 ) {
+    return true;
+  }
+  for (int i=0; i<jobs.size(); i++) {
+    if (jobs[i]->job_id == job_id) {
+      return true;
+    }
+  }
+  return false;
 }
 
 #endif

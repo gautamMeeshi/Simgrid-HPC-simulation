@@ -1,6 +1,7 @@
-#include "helper.hpp"
-#include <unordered_map>
+#include <map>
 #include <vector>
+#include "helper.hpp"
+#include "objects.hpp"
 
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
@@ -19,35 +20,21 @@ Output is a dictionary - {Resource: Job_to_be_run}
 The SlurmCtlD will run that mapping
 */
 
-class Resource {
-    /*
-    Contains all the resource objects that are considered while scheduling
-    Currently contains only the free_cpus list on each node
-    */
-public:
-    int free_cpus;
-};
-
-bool allParentsCompleted(std::vector<Job*> &jobs, std::vector<int> &p_job_id) {
+bool allParentsCompleted(std::map<int, Job*> &jobs, std::vector<int> &p_job_id) {
     for (int i=0; i<p_job_id.size(); i++) {
-        if (p_job_id[i] >= 0) {
-            for (int j=0; j<jobs.size(); j++) {
-                if (jobs[j]->job_id == p_job_id[i] &&
-                    jobs[j]->job_state != COMPLETED) {
-                    return false;
-                }
-            }
+        if (jobs[p_job_id[i]]->job_state != COMPLETED) {
+            return false;
         }
     }
     return true;
 }
 
-std::vector<Job*> getRunnableJobs(std::vector<Job*> &jobs) {
+std::vector<Job*> getRunnableJobs(std::map<int, Job*> &jobs) {
     std::vector<Job*> res;
-    for (int i=0; i<jobs.size(); i++) {
-        if (jobs[i]->job_state == PENDING &&
-            allParentsCompleted(jobs, jobs[i]->p_job_id)) {
-            res.push_back(jobs[i]);
+    for (auto it=jobs.begin(); it!=jobs.end(); it++) {
+        if (it->second->job_state == PENDING &&
+            allParentsCompleted(jobs, it->second->p_job_id)) {
+            res.push_back(it->second);
         }
     }
     return res;
@@ -136,7 +123,7 @@ std::vector<Job*> fcfs_scheduler(std::vector<Job*> &jobs,
     return res;
 }
 
-std::vector<Job*> scheduler(std::vector<Job*> &jobs,
+std::vector<Job*> scheduler(std::map<int, Job*> &jobs,
                             std::vector<Resource> &resrc,
                             std::string scheduler_type,
                             long &jobs_remaining) {

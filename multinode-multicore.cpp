@@ -1,35 +1,14 @@
 #include <simgrid/s4u.hpp>
-#include <unordered_map>
+#include <map>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include "helper.hpp"
 #include "scheduler.hpp"
-
-class SlurmDmsg {
-public:
-  int free_cpus;
-  std::vector<int> jobs_completed;
-  SlurmDmsg(int fc, std::vector<int> jc) {
-    free_cpus = fc;
-    jobs_completed = jc;
-  }
-};
+#include "objects.hpp"
 
 XBT_LOG_NEW_DEFAULT_CATEGORY(HPC, "Messages specific for this s4u example");
 namespace sg4 = simgrid::s4u;
-
-bool jobExists(std::vector<Job*> jobs, int job_id) {
-  if (job_id < 0 ) {
-    return true;
-  }
-  for (int i=0; i<jobs.size(); i++) {
-    if (jobs[i]->job_id == job_id) {
-      return true;
-    }
-  }
-  return false;
-}
 
 class SlurmCtlD {
   /*
@@ -42,7 +21,7 @@ class SlurmCtlD {
   long jobs_remaining = 0;
   std::vector<sg4::Mailbox*> SlurmDs;
   sg4::Mailbox *mymailbox;
-  std::vector<Job*> jobs;
+  std::map<int, Job*> jobs;
   std::vector<Resource> resrcs;
   std::vector<std::string> host_name;
   std::string scheduler_type;
@@ -76,12 +55,7 @@ public:
 
       for (int j=0; j<msg->jobs_completed.size(); j++) {
         if (msg->jobs_completed[j] != -1) {
-          for (int k=0; k<jobs.size(); k++) {
-            if (jobs[k]->job_id == msg->jobs_completed[j]) {
-              jobs[k]->job_state = COMPLETED;
-              break;
-            }
-          }
+            jobs[msg->jobs_completed[j]]->job_state = COMPLETED;
         }
       }
     }
@@ -92,29 +66,31 @@ public:
     std::vector<int> jobs_wo_parents;
     do {
       jobs_wo_parents.clear();
-      for (int i=jobs.size() - 1; i >= 0; i--) {
-        for (int j=0; j < jobs[i]->p_job_id.size(); j++) {
-          if (!jobExists(jobs, jobs[i]->p_job_id[j])) {
-            jobs_wo_parents.push_back(i);
-            break;
+      for (auto it = jobs.begin(); it != jobs.end(); it++) {
+        for (int i=0; i < it->second->p_job_id.size(); i++) {
+          if (jobs.find(it->second->p_job_id[i]) == jobs.end()) {
+            jobs_wo_parents.push_back(it->first);
           }
         }
       }
       for (int i=0; i<jobs_wo_parents.size(); i++) {
         XBT_INFO("Removing job %i, does not have parent", jobs[jobs_wo_parents[i]]->job_id);
-        jobs.erase(jobs.begin() + jobs_wo_parents[i]);
+        jobs.erase(jobs_wo_parents[i]);
       }
     } while (!jobs_wo_parents.empty());
     return;
   }
 
   void removeJobs(int free_cpu_sum) {
-    int total_jobs = jobs.size();
-    for (int i = total_jobs-1; i >= 0; i--) {
-      if (jobs[i]->num_cpus > free_cpu_sum) {
-        XBT_INFO("Removing job %i, not enough resource", jobs[i]->job_id);
-        jobs.erase(jobs.begin()+i);
+    std::vector<int> jobs_to_remove;
+    for (auto it = jobs.begin(); it != jobs.end(); it++) {
+      if (it->second->num_cpus > free_cpu_sum) {
+        jobs_to_remove.push_back(it->first);
       }
+    }
+    for (int i=0; i<jobs_to_remove.size(); i++) {
+      XBT_INFO("Removing job %i, not enough resource", jobs[jobs_to_remove[i]]->job_id);
+      jobs.erase(jobs_to_remove[i]);
     }
     // remove jobs without parents
     removeJobsWoParents();
@@ -133,7 +109,7 @@ public:
     }
     XBT_DEBUG("Total number of CPUs %i", free_cpu_sum);
     removeJobs(free_cpu_sum);
-    jobs_remaining = jobs.size();
+    jobs_remaining = jobs.size(); // ASSUMPTION - all the jobs are in PENDING state
 
     while (jobs_remaining > 0) {
       // while there are pending jobs
