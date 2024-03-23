@@ -4,6 +4,7 @@
   <!-- SlurmCtlD -->
   <actor host="node0-core0" function="slurmctld">
     <argument value="jobs.csv"/>
+    <argument value="fcfs_backfill"/>
     <argument value="node0-core0"/>
     <argument value="node1-core0"/>
     <argument value="node2-core0"/>

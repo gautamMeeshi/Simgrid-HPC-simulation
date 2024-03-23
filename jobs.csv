@@ -6,5 +6,5 @@ job_id,cpus,computation_volume_per_cpu,priority,dependency
 4,2,1e9,1,(-1)
 5,4,1e9,1,(-1)
 6,11,4e9,1,(-1)
-7,3,1e9,1,(-1)
+7,1,1e9,1,(-1)
 8,5,1e9,1,(-1)

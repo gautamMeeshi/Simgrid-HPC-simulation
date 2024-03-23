@@ -51,13 +51,14 @@ public:
   {
     // xbt_assert(args.size() > 4, "The master function expects 3 arguments plus the workers' names");
 
-    XBT_INFO("SlurmCltD args size %zu", args.size());
+    XBT_INFO("SlurmCltD scheduler type %s", args[2].c_str());
+    
     job_file_name = args[1];
+    scheduler_type = args[2];
     mymailbox = sg4::Mailbox::by_name(sg4::this_actor::get_host()->get_name());
     jobs = parseJobFile(job_file_name);
-    scheduler_type = "fcfs";
 
-    for (unsigned int i = 2; i < args.size(); i++) {
+    for (unsigned int i = 3; i < args.size(); i++) {
       SlurmDs.push_back(sg4::Mailbox::by_name(args[i]));
       resrcs.push_back(Resource());
       host_name.push_back(args[i]);
@@ -78,6 +79,7 @@ public:
           for (int k=0; k<jobs.size(); k++) {
             if (jobs[k]->job_id == msg->jobs_completed[j]) {
               jobs[k]->job_state = COMPLETED;
+              break;
             }
           }
         }
