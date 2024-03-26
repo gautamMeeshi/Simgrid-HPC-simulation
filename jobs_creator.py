@@ -15,11 +15,11 @@ for i in range(num_jobs):
         for j in range(num_dependencies):
             dependency_set.add(random.randint(0,i-1))
     dependency_string = ''
-    for i in dependency_set:
-        dependency_string += str(i)+','
+    for k in dependency_set:
+        dependency_string += str(k)+','
     dependency_string = dependency_string[:-1]
     num_cpus = random.randint(cpu_range[0],cpu_range[1])
     computation = random.randint(computation_range[0],computation_range[1])
-    file.write(f'''{i},{num_cpus},{computation}e9,({dependency_string})''')
+    file.write(f'''{i},{num_cpus},{computation}e9,1,({dependency_string})''')
     if (i<num_jobs-2):
         file.write('\n')
