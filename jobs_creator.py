@@ -1,7 +1,7 @@
 import random
 
-computation_range = (10, 1000000)
-cpu_range = (1, 40)
+computation_range = (10, 10000)
+cpu_range = (1, 12)
 dependency_ranges = (0,5)
 num_jobs = 100
 
@@ -15,8 +15,8 @@ for i in range(num_jobs):
         for j in range(num_dependencies):
             dependency_set.add(random.randint(0,i-1))
     dependency_string = ''
-    for k in dependency_set:
-        dependency_string += str(k)+','
+    for d in dependency_set:
+        dependency_string += str(d)+','
     dependency_string = dependency_string[:-1]
     num_cpus = random.randint(cpu_range[0],cpu_range[1])
     computation = random.randint(computation_range[0],computation_range[1])

@@ -70,6 +70,7 @@ public:
         for (int i=0; i < it->second->p_job_id.size(); i++) {
           if (jobs.find(it->second->p_job_id[i]) == jobs.end()) {
             jobs_wo_parents.push_back(it->first);
+            break;
           }
         }
       }
@@ -107,7 +108,7 @@ public:
     for (int i=0; i < SlurmDs.size(); i++) {
       SlurmDs[i]->put(new Job(), communicate_cost);
     }
-    XBT_DEBUG("Total number of CPUs %i", free_cpu_sum);
+    XBT_INFO("Total number of CPUs %i", free_cpu_sum);
     removeJobs(free_cpu_sum);
     jobs_remaining = jobs.size(); // ASSUMPTION - all the jobs are in PENDING state
 
