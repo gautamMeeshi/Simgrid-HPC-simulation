@@ -4,6 +4,12 @@
 #ifndef OBJECTS_H
 #define OBJECTS_H
 
+enum SlurmSignal {
+    RUN = 0,
+    STOP = 1,
+    IDLE = 2
+};
+
 class SlurmDmsg {
 public:
     int free_cpus;
@@ -16,7 +22,13 @@ public:
 
 class SlurmCtlDmsg {
 public:
-    std::vector<Job> jobs;
+    SlurmSignal sig;
+    std::vector<Job*> jobs;
+    SlurmCtlDmsg (SlurmSignal s = IDLE,
+                  std::vector<Job*> j = std::vector<Job*>()) {
+        sig = s;
+        jobs = j;
+    }
 };
 
 class Resource {

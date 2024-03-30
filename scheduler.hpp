@@ -40,18 +40,19 @@ std::vector<Job*> getRunnableJobs(std::map<int, Job*> &jobs) {
     return res;
 }
 
-std::vector<Job*> fcfs_backfill_scheduler(std::vector<Job*> &jobs,
-                                          std::vector<Resource> &resrc,
-                                          long &jobs_remaining) {
-    std::vector<Job*> res;
+std::vector<SlurmCtlDmsg*> fcfs_backfill_scheduler(std::vector<Job*> &jobs,
+                                                   std::vector<Resource> &resrc,
+                                                   long &jobs_remaining) {
+    std::vector<SlurmCtlDmsg*> res;
     int total_free_cpus = 0;
     for (int j=0; j<resrc.size(); j++) {
         total_free_cpus += resrc[j].free_cpus;
+        res.push_back(new SlurmCtlDmsg());
     }
     int i = 0;
     int j = 0;
     while (i < jobs.size()) {
-        //find if a job can be scheduled
+        // find if a job can be scheduled
         if (jobs[i]->num_cpus <= total_free_cpus) {
             while (j<resrc.size()) { // iterate over the number of SlurmDs
                 if (resrc[j].free_cpus > 0) {
@@ -61,7 +62,8 @@ std::vector<Job*> fcfs_backfill_scheduler(std::vector<Job*> &jobs,
                                               jobs[i]->computation_cost,
                                               jobs[i]->priority,
                                               jobs[i]->p_job_id);
-                    res.push_back(job_subset);
+                    res[j]->jobs.push_back(job_subset);
+                    res[j]->sig = RUN;
                     resrc[j].free_cpus -= cpus_to_use;
                     total_free_cpus -= cpus_to_use;
                     jobs[i]->num_cpus = jobs[i]->num_cpus - cpus_to_use;
@@ -71,64 +73,65 @@ std::vector<Job*> fcfs_backfill_scheduler(std::vector<Job*> &jobs,
                         j++;
                         break;
                     }
-                } else {
-                    res.push_back(new Job());
                 }
                 j++;
             }
         }
         i++;
     }
-    while (j < resrc.size()) {
-        res.push_back(new Job());
-        j++;
-    }
     // std::cout << "Scheduled jobs size "<< res.size()<<'\n';
     return res;
 }
 
-std::vector<Job*> fcfs_scheduler(std::vector<Job*> &jobs,
-                                 std::vector<Resource> &resrc,
-                                 long &jobs_remaining) {
-    std::vector<Job*> res;
-    bool job_distributed = false;
+std::vector<SlurmCtlDmsg*> fcfs_scheduler(std::vector<Job*> &jobs,
+                                       std::vector<Resource> &resrc,
+                                       long &jobs_remaining) {
+std::vector<SlurmCtlDmsg*> res;
     int total_free_cpus = 0;
     for (int j=0; j<resrc.size(); j++) {
         total_free_cpus += resrc[j].free_cpus;
+        res.push_back(new SlurmCtlDmsg());
     }
-    if (jobs.size() == 0 || total_free_cpus < jobs[0]->num_cpus) {
-        for (int i=0; i<resrc.size(); i++) {
-            res.push_back(new Job());
-        }
-        return res;
-    }
-    for (int j=0; j<resrc.size(); j++) {
-        if (resrc[j].free_cpus > 0 && !job_distributed) {
-            int cpus_to_use = std::min(resrc[j].free_cpus, jobs[0]->num_cpus);
-            Job *job_subset = new Job(jobs[0]->job_id, cpus_to_use,
-                                      jobs[0]->computation_cost,
-                                      jobs[0]->priority, jobs[0]->p_job_id);
-            res.push_back(job_subset);
-            if (cpus_to_use < jobs[0]->num_cpus) {
-                jobs[0]->num_cpus = jobs[0]->num_cpus - cpus_to_use;
-            } else {
-                jobs[0]->job_state = RUNNING;
-                jobs_remaining--;
-                job_distributed = true;
+    int i = 0;
+    int j = 0;
+    bool job_scheduled = false;
+    for (int i=0; i < jobs.size(); i++) {
+        if (jobs[i]->num_cpus <= total_free_cpus) {
+            while (j<resrc.size()) { // iterate over the number of SlurmDs
+                if (resrc[j].free_cpus > 0) {
+                    int cpus_to_use = std::min(resrc[j].free_cpus,
+                                               jobs[i]->num_cpus);
+                    Job *job_subset = new Job(jobs[i]->job_id, cpus_to_use,
+                                              jobs[i]->computation_cost,
+                                              jobs[i]->priority,
+                                              jobs[i]->p_job_id);
+                    res[j]->jobs.push_back(job_subset);
+                    res[j]->sig = RUN;
+                    resrc[j].free_cpus -= cpus_to_use;
+                    total_free_cpus -= cpus_to_use;
+                    jobs[i]->num_cpus = jobs[i]->num_cpus - cpus_to_use;
+                    if (jobs[i]->num_cpus == 0) {
+                        jobs[i]->job_state = RUNNING;
+                        jobs_remaining--;
+                        j++;
+                        break;
+                    }
+                }
+                j++;
             }
         } else {
-            res.push_back(new Job());
+            break; // not allowed to break the sequence in fcfs
         }
     }
     return res;
 }
 
-std::vector<Job*> scheduler(std::map<int, Job*> &jobs,
-                            std::vector<Resource> &resrc,
-                            std::string scheduler_type,
-                            long &jobs_remaining) {
+std::vector<SlurmCtlDmsg*> scheduler(std::map<int, Job*> &jobs,
+                                     std::vector<Resource> &resrc,
+                                     std::string scheduler_type,
+                                     long &jobs_remaining) {
     std::vector<Job*> runnable_jobs = getRunnableJobs(jobs);
-    std::vector<Job*> res;
+    std::vector<SlurmCtlDmsg*> res;
     if (scheduler_type == "fcfs_backfill") {
         res = fcfs_backfill_scheduler(runnable_jobs, resrc, jobs_remaining);
     } else {

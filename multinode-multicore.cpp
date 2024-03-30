@@ -31,7 +31,7 @@ public:
   {
     // xbt_assert(args.size() > 4, "The master function expects 3 arguments plus the workers' names");
 
-    XBT_INFO("SlurmCltD scheduler type %s", args[2].c_str());
+    XBT_INFO("SlurmCtlD scheduler type %s", args[2].c_str());
     
     job_file_name = args[1];
     scheduler_type = args[2];
@@ -50,15 +50,18 @@ public:
   int getFreeCpus() {
     int free_cpu_sum = 0;
     for (int i=0; i < SlurmDs.size(); i++) {
-      auto msg = SlurmDs[i]->get<SlurmDmsg>();
+      SlurmDmsg* msg = SlurmDs[i]->get<SlurmDmsg>();
       resrcs[i].free_cpus = msg->free_cpus;
       free_cpu_sum += resrcs[i].free_cpus;
 
       for (int j=0; j<msg->jobs_completed.size(); j++) {
-        if (msg->jobs_completed[j] != -1) {
+        if (msg->jobs_completed[j] != -1 &&
+            jobs[msg->jobs_completed[j]]->job_state != COMPLETED) {
             jobs[msg->jobs_completed[j]]->job_state = COMPLETED;
+            XBT_INFO("Completed job %i", msg->jobs_completed[j]);
         }
       }
+      delete msg;
     }
     return free_cpu_sum;
   }
@@ -107,7 +110,7 @@ public:
       resrcs[i].free_cpus = 0;
     }
     for (int i=0; i < SlurmDs.size(); i++) {
-      SlurmDs[i]->put(new Job(), communicate_cost);
+      SlurmDs[i]->put(new SlurmCtlDmsg(), communicate_cost);
     }
     XBT_INFO("Total number of CPUs %i", free_cpu_sum);
     removeJobs(free_cpu_sum);
@@ -120,7 +123,7 @@ public:
       bool job_distributed = false;
       XBT_DEBUG("Number of free cpus in total %i", free_cpu_sum);
 
-      std::vector<Job*> scheduled_jobs = scheduler(jobs, resrcs, scheduler_type, jobs_remaining);
+      std::vector<SlurmCtlDmsg*> scheduled_jobs = scheduler(jobs, resrcs, scheduler_type, jobs_remaining);
       xbt_assert(scheduled_jobs.size() == SlurmDs.size(),
                  "Scheduler output size not same as the number of SlurmDs");
       for (int i=0; i<SlurmDs.size(); i++) {
@@ -133,12 +136,11 @@ public:
     }
     // All jobs have completed
     // Send terminate signal to all the SlurmDs
-    XBT_INFO("All jobs completed collecting the final log");
+    XBT_INFO("All jobs scheduled collecting the final log");
     free_cpu_sum = getFreeCpus();
     XBT_INFO("Number of free cpus in total %i", free_cpu_sum);
-    XBT_INFO("Send termination request");
     for (int i=0; i < SlurmDs.size(); i++) {
-      SlurmDs[i]->put(new Job(-1,-1,-1,-1), communicate_cost);
+      SlurmDs[i]->put(new SlurmCtlDmsg(STOP), communicate_cost);
     }
     XBT_INFO("SlurmCtlD exiting");
   }
@@ -184,7 +186,6 @@ public:
         if (cpus[i]->get_load() == 0.0) {
           if (running_job_ids[i] != -1) {
             jobs_completed.push_back(running_job_ids[i]);
-            XBT_INFO("Completed job %i", running_job_ids[i]);
             running_job_ids[i] = -1;
           }
           num_free_cpus++;
@@ -193,31 +194,38 @@ public:
       mymailbox->put(new SlurmDmsg(num_free_cpus, jobs_completed), communicate_cost);
       XBT_DEBUG("Number of free CPUs %i", num_free_cpus);
 
-      Job *j = mymailbox->get<Job>();
+      SlurmCtlDmsg *msg = mymailbox->get<SlurmCtlDmsg>();
 
-      if (j->num_cpus > 0) {
-        XBT_INFO("Executing job %i on %i cpus of computation %f", j->job_id, j->num_cpus, j->computation_cost);
-        for (int i=0; i < cpus.size(); i++) {
-          if (cpus[i]->get_load() == 0 && running_job_ids[i] == -1) {
-            running_job_ids[i] = j->job_id;
-            double computation = j->computation_cost;
-            sg4::ExecPtr exec = sg4::this_actor::exec_init(computation);
-            exec->set_host(cpus[i]);
-            exec->start();
-            executions[i] = exec;
-            j->num_cpus--;
-            if (j->num_cpus == 0) {
-              break;
+      if (msg->sig == RUN) {
+        // execute the provided jobs
+        xbt_assert(msg->jobs.size() != 0);
+        for (int k=0; k < msg->jobs.size(); k++) {
+          Job *j = msg->jobs[k];
+          XBT_INFO("Executing job %i on %i cpus of computation %f",
+                   j->job_id, j->num_cpus, j->computation_cost);
+          for (int i=0; i < cpus.size(); i++) {
+            if (cpus[i]->get_load() == 0 && running_job_ids[i] == -1) {
+              running_job_ids[i] = j->job_id;
+              double computation = j->computation_cost;
+              sg4::ExecPtr exec = sg4::this_actor::exec_init(computation);
+              exec->set_host(cpus[i]);
+              exec->start();
+              executions[i] = exec;
+              j->num_cpus--;
+              if (j->num_cpus == 0) {
+                break;
+              }
             }
           }
+          delete j;
         }
-      } else if (j->num_cpus == 0) {
+      } else if (msg->sig == IDLE) {
         // do nothing;
-      } else if (j->num_cpus == -1) {
+      } else if (msg->sig == STOP) {
         // end the simulation
-        XBT_INFO("Recieved termination request");
         break;
       }
+      delete msg;
       sg4::this_actor::sleep_for(0.1);
     }
 
@@ -225,7 +233,7 @@ public:
   }
 };
 
-void generateStats(sg4::Engine &e) {
+void generateStats(sg4::Engine &e, double exec_time) {
   std::ofstream stats_file("stats.csv");
   XBT_INFO("---------STATS--------");
   std::vector<sg4::Host*> all_hosts= e.get_all_hosts();
@@ -235,9 +243,10 @@ void generateStats(sg4::Engine &e) {
     stats_file << all_hosts[i]->get_name() <<',' << energy_consumption<<'\n';
     total_energy_consumption += energy_consumption;
   }
-  stats_file << "total_energy_consumption,"<<total_energy_consumption<<'\n';
-
+  stats_file << "total_energy_consumption,"<<total_energy_consumption<<"J"<<'\n';
+  stats_file << "total_execution_time,"<<exec_time<<"s"<<'\n';
   XBT_INFO("Total energy consumed by CPUs = %lfJ", total_energy_consumption);
+  XBT_INFO("Total exection time %lfs", exec_time);
   stats_file.close();
 }
 
@@ -257,9 +266,10 @@ int main(int argc, char* argv[])
   e.load_deployment(argv[2]);
 
   /* Run the simulation */
+  double start_time = sg4::Engine::get_clock();
   e.run();
-
-  generateStats(e);
+  double end_time = sg4::Engine::get_clock();
+  generateStats(e, end_time-start_time);
   XBT_INFO("Simulation is over");
   
 
