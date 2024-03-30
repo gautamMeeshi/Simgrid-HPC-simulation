@@ -6,3 +6,6 @@ compile:
 
 run:
 	./exec small_platform.xml deployment.xml
+
+run150:
+	./exec platform-5.5.6.2-torus.xml deployment-5.5.6.2-torus.xml

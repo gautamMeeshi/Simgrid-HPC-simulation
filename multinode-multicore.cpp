@@ -1,4 +1,5 @@
 #include <simgrid/s4u.hpp>
+#include <simgrid/plugins/energy.h>
 #include <map>
 #include <iostream>
 #include <fstream>
@@ -128,7 +129,7 @@ public:
       for (int i=0; i<SlurmDs.size(); i++) {
         resrcs[i].free_cpus = 0;
       }
-      sg4::this_actor::sleep_for(1);
+      sg4::this_actor::sleep_for(3);
     }
     // All jobs have completed
     // Send terminate signal to all the SlurmDs
@@ -183,6 +184,7 @@ public:
         if (cpus[i]->get_load() == 0.0) {
           if (running_job_ids[i] != -1) {
             jobs_completed.push_back(running_job_ids[i]);
+            XBT_INFO("Completed job %i", running_job_ids[i]);
             running_job_ids[i] = -1;
           }
           num_free_cpus++;
@@ -196,7 +198,7 @@ public:
       if (j->num_cpus > 0) {
         XBT_INFO("Executing job %i on %i cpus of computation %f", j->job_id, j->num_cpus, j->computation_cost);
         for (int i=0; i < cpus.size(); i++) {
-          if (cpus[i]->get_load() == 0) {
+          if (cpus[i]->get_load() == 0 && running_job_ids[i] == -1) {
             running_job_ids[i] = j->job_id;
             double computation = j->computation_cost;
             sg4::ExecPtr exec = sg4::this_actor::exec_init(computation);
@@ -223,6 +225,22 @@ public:
   }
 };
 
+void generateStats(sg4::Engine &e) {
+  std::ofstream stats_file("stats.csv");
+  XBT_INFO("---------STATS--------");
+  std::vector<sg4::Host*> all_hosts= e.get_all_hosts();
+  double total_energy_consumption = 0.0;
+  for (int i=0; i<all_hosts.size(); i++) {
+    double energy_consumption = sg_host_get_consumed_energy(all_hosts[i]);
+    stats_file << all_hosts[i]->get_name() <<',' << energy_consumption<<'\n';
+    total_energy_consumption += energy_consumption;
+  }
+  stats_file << "total_energy_consumption,"<<total_energy_consumption<<'\n';
+
+  XBT_INFO("Total energy consumed by CPUs = %lfJ", total_energy_consumption);
+  stats_file.close();
+}
+
 int main(int argc, char* argv[])
 {
   sg4::Engine e(&argc, argv);
@@ -233,13 +251,17 @@ int main(int argc, char* argv[])
   e.register_actor<SlurmD>("slurmd");
 
   /* Load the platform description and then deploy the application */
+  sg_host_energy_plugin_init();
+
   e.load_platform(argv[1]);
   e.load_deployment(argv[2]);
 
   /* Run the simulation */
   e.run();
 
+  generateStats(e);
   XBT_INFO("Simulation is over");
+  
 
   return 0;
 }

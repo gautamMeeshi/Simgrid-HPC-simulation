@@ -44,16 +44,17 @@ std::vector<Job*> fcfs_backfill_scheduler(std::vector<Job*> &jobs,
                                           std::vector<Resource> &resrc,
                                           long &jobs_remaining) {
     std::vector<Job*> res;
-    bool job_distributed = false;
     int total_free_cpus = 0;
     for (int j=0; j<resrc.size(); j++) {
         total_free_cpus += resrc[j].free_cpus;
     }
-    for (int i=0; i<jobs.size(); i++) {
+    int i = 0;
+    int j = 0;
+    while (i < jobs.size()) {
         //find if a job can be scheduled
         if (jobs[i]->num_cpus <= total_free_cpus) {
-            for (int j=0; j<resrc.size(); j++) {
-                if (resrc[j].free_cpus > 0 && !job_distributed) {
+            while (j<resrc.size()) { // iterate over the number of SlurmDs
+                if (resrc[j].free_cpus > 0) {
                     int cpus_to_use = std::min(resrc[j].free_cpus,
                                                jobs[i]->num_cpus);
                     Job *job_subset = new Job(jobs[i]->job_id, cpus_to_use,
@@ -62,28 +63,27 @@ std::vector<Job*> fcfs_backfill_scheduler(std::vector<Job*> &jobs,
                                               jobs[i]->p_job_id);
                     res.push_back(job_subset);
                     resrc[j].free_cpus -= cpus_to_use;
-                    if (cpus_to_use < jobs[i]->num_cpus) {
-                        jobs[i]->num_cpus = jobs[i]->num_cpus - cpus_to_use;
-                    } else {
+                    total_free_cpus -= cpus_to_use;
+                    jobs[i]->num_cpus = jobs[i]->num_cpus - cpus_to_use;
+                    if (jobs[i]->num_cpus == 0) {
                         jobs[i]->job_state = RUNNING;
                         jobs_remaining--;
-                        job_distributed = true;
+                        j++;
+                        break;
                     }
                 } else {
                     res.push_back(new Job());
                 }
+                j++;
             }
         }
-        if (job_distributed) {
-            break;
-        }
+        i++;
     }
-    if (!job_distributed){
-        for (int i=0; i<resrc.size(); i++) {
-            res.push_back(new Job());
-        }
-        return res;
+    while (j < resrc.size()) {
+        res.push_back(new Job());
+        j++;
     }
+    // std::cout << "Scheduled jobs size "<< res.size()<<'\n';
     return res;
 }
 

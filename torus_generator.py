@@ -99,20 +99,30 @@ def construct_paths(prev, source):
         paths[(source,node)] = path
     return paths
 
-routes = {} # key pair of nodes, value list of links
-for v in node_names.values():
-    (dist,prev) = Dijkstras(adj_grf, v)
-    paths = construct_paths(prev, v)
-    routes.update(paths)
+def getAllRoutes():
+    global node_names
+    global adj_grf
+    routes = {} # key pair of nodes, value list of links
+    for v in node_names.values():
+        (dist,prev) = Dijkstras(adj_grf, v)
+        paths = construct_paths(prev, v)
+        routes.update(paths)
 
-nodes = list(node_names.values())
-for i in range(len(nodes)):
-    for j in range(i+1,len(nodes)):
-        del routes[(nodes[j], nodes[i])]
-distinct_keys = {}
-for k in routes:
-    distinct_keys[k] = True
+    nodes = list(node_names.values())
+    for i in range(len(nodes)):
+        for j in range(i+1,len(nodes)):
+            del routes[(nodes[j], nodes[i])]
+    return routes
 
+def getRoutesFromSlurmCtlD():
+    global node_names
+    global adj_grf
+    v = node_names[(xdim//2, ydim//2, zdim//2)]
+    (dist, prev) = Dijkstras(adj_grf, v)
+    return construct_paths(prev, v)
+
+# routes = getAllRoutes()
+routes = getRoutesFromSlurmCtlD()
 
 ################### CREATE PLATFORM FILE #######################
 pf_file = open(f'platform-{xdim}.{ydim}.{zdim}.{num_cpus}-torus.xml','w+')

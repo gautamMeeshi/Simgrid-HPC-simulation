@@ -21,5 +21,5 @@ for i in range(num_jobs):
     num_cpus = random.randint(cpu_range[0],cpu_range[1])
     computation = random.randint(computation_range[0],computation_range[1])
     file.write(f'''{i},{num_cpus},{computation}e9,1,({dependency_string})''')
-    if (i<num_jobs-2):
+    if (i<num_jobs-1):
         file.write('\n')
