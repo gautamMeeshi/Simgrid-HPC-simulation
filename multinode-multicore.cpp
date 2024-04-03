@@ -80,6 +80,7 @@ public:
       }
       for (int i=0; i<jobs_wo_parents.size(); i++) {
         XBT_INFO("Removing job %i, does not have parent", jobs[jobs_wo_parents[i]]->job_id);
+        delete jobs[jobs_wo_parents[i]];
         jobs.erase(jobs_wo_parents[i]);
       }
     } while (!jobs_wo_parents.empty());
@@ -95,6 +96,7 @@ public:
     }
     for (int i=0; i<jobs_to_remove.size(); i++) {
       XBT_INFO("Removing job %i, not enough resource", jobs[jobs_to_remove[i]]->job_id);
+      delete jobs[jobs_to_remove[i]];
       jobs.erase(jobs_to_remove[i]);
     }
     // remove jobs without parents
@@ -143,6 +145,10 @@ public:
       SlurmDs[i]->put(new SlurmCtlDmsg(STOP), communicate_cost);
     }
     XBT_INFO("SlurmCtlD exiting");
+    // clean up the jobs
+    for (auto it = jobs.begin(); it != jobs.end(); it++) {
+      delete it->second;
+    }
   }
 };
 
@@ -201,8 +207,8 @@ public:
         xbt_assert(msg->jobs.size() != 0);
         for (int k=0; k < msg->jobs.size(); k++) {
           Job *j = msg->jobs[k];
-          XBT_INFO("Executing job %i on %i cpus of computation %f",
-                   j->job_id, j->num_cpus, j->computation_cost);
+          //XBT_INFO("Executing job %i on %i cpus of computation %f",
+          //          j->job_id, j->num_cpus, j->computation_cost);
           for (int i=0; i < cpus.size(); i++) {
             if (cpus[i]->get_load() == 0 && running_job_ids[i] == -1) {
               running_job_ids[i] = j->job_id;

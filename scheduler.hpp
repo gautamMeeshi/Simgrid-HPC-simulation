@@ -20,7 +20,7 @@ Output is a dictionary - {Resource: Job_to_be_run}
 The SlurmCtlD will run that mapping
 */
 
-bool allParentsCompleted(std::map<int, Job*> &jobs, std::vector<int> &p_job_id) {
+bool allParentsCompleted(std::map<int, Job*> &jobs,const std::vector<int> &p_job_id) {
     for (int i=0; i<p_job_id.size(); i++) {
         if (jobs[p_job_id[i]]->job_state != COMPLETED) {
             return false;
@@ -79,13 +79,12 @@ std::vector<SlurmCtlDmsg*> fcfs_backfill_scheduler(std::vector<Job*> &jobs,
         }
         i++;
     }
-    // std::cout << "Scheduled jobs size "<< res.size()<<'\n';
     return res;
 }
 
 std::vector<SlurmCtlDmsg*> fcfs_scheduler(std::vector<Job*> &jobs,
-                                       std::vector<Resource> &resrc,
-                                       long &jobs_remaining) {
+                                          std::vector<Resource> &resrc,
+                                          long &jobs_remaining) {
 std::vector<SlurmCtlDmsg*> res;
     int total_free_cpus = 0;
     for (int j=0; j<resrc.size(); j++) {
@@ -120,7 +119,7 @@ std::vector<SlurmCtlDmsg*> res;
                 j++;
             }
         } else {
-            break; // not allowed to break the sequence in fcfs
+            break; // not allowed to skip the sequence in fcfs
         }
     }
     return res;
