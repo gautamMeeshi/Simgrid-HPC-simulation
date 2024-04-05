@@ -1,0 +1,6 @@
+1. When the computation of load of each job is negligible the fcfs and fcfs_backfill
+   have identical performance.
+2. In general fcfs_backfill performs better over the fcfs but in rare cases the
+   might perform poor over fcfs. This can happen when the backfill chooses a job
+   that runs for long time and thus blocks other jobs from running.
+3. We can take the thumb rule that lesser runtime implies lesser energy consumption.
