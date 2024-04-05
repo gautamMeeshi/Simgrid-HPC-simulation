@@ -4,27 +4,36 @@
 #ifndef OBJECTS_H
 #define OBJECTS_H
 
+const int CPUS_PER_NODE = 2;
+
 enum SlurmSignal {
     RUN = 0,
     STOP = 1,
     IDLE = 2
 };
 
-class SlurmDmsg {
+enum SlurmdState {
+    FREE = 0,
+    BUSY = 1
+};
+
+class SlurmdMsg {
 public:
+    SlurmdState state;
     int free_cpus;
     std::vector<int> jobs_completed;
-    SlurmDmsg(int fc, std::vector<int> jc) {
+    SlurmdMsg (SlurmdState s, int fc, std::vector<int> jc) {
         free_cpus = fc;
         jobs_completed = jc;
+        state = s;
     }
 };
 
-class SlurmCtlDmsg {
+class SlurmCtldMsg {
 public:
     SlurmSignal sig;
     std::vector<Job*> jobs;
-    SlurmCtlDmsg (SlurmSignal s = IDLE,
+    SlurmCtldMsg (SlurmSignal s = IDLE,
                   std::vector<Job*> j = std::vector<Job*>()) {
         sig = s;
         jobs = j;
@@ -33,6 +42,7 @@ public:
 
 class Resource {
 public:
+    SlurmdState node_state;
     int free_cpus;
 };
 

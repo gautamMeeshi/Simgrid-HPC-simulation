@@ -1,16 +1,18 @@
 import random
 
-computation_range = (10, 10000)
-cpu_range = (1, 12)
-dependency_ranges = (0,5)
+computation_range = (500, 700)
+nodes_range = (1, 50)
+tasks_per_node_range = (1,18)
+cpus_per_task_range = (1,4)
+dependency_ranges = (0,3)
 num_jobs = 100
 
 file = open('jobs_created.csv','w+')
-file.write('job_id,cpus,computation_volume_per_cpu,priority,dependency\n')
+file.write('job_id,nodes,tasks-per-node,cpu-per-task,total_computation,priority,dependency\n')
 
 for i in range(num_jobs):
     dependency_set = set()
-    num_dependencies = random.randint(dependency_ranges[0],dependency_ranges[1])
+    num_dependencies = random.randint(dependency_ranges[0], dependency_ranges[1])
     if (i>0):
         for j in range(num_dependencies):
             dependency_set.add(random.randint(0,i-1))
@@ -18,8 +20,11 @@ for i in range(num_jobs):
     for d in dependency_set:
         dependency_string += str(d)+','
     dependency_string = dependency_string[:-1]
-    num_cpus = random.randint(cpu_range[0],cpu_range[1])
-    computation = random.randint(computation_range[0],computation_range[1])
-    file.write(f'''{i},{num_cpus},{computation}e9,1,({dependency_string})''')
+    nodes = random.randint(nodes_range[0], nodes_range[1])
+    tpn = random.randint(tasks_per_node_range[0], tasks_per_node_range[1])
+    cpt = random.randint(cpus_per_task_range[0], cpus_per_task_range[1])
+    computation = random.randint(computation_range[0],computation_range[1])*nodes*tpn*cpt
+
+    file.write(f'''{i},{nodes},{tpn},{cpt},{computation}e7,1,({dependency_string})''')
     if (i<num_jobs-1):
         file.write('\n')

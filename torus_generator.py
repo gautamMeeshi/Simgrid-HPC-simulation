@@ -1,5 +1,5 @@
 num_cpus = 2
-cores = 6
+num_cores = 6
 core_speed = '2Gf'
 power_consumption = "140.0:320.0"
 link_lat = "100us"
@@ -139,7 +139,7 @@ pf_file.write('''<?xml version='1.0'?>
 pf_file.write("<!-- CPUS spec -->\n")
 for node in node_names.values():
     for c in range(num_cpus):
-        pf_file.write(f'''  <host id="{node}.c{c}" speed="{core_speed}">
+        pf_file.write(f'''  <host id="{node}.c{c}" speed="{core_speed}" core="{num_cores}">
     <prop id="wattage_per_state" value="{power_consumption}"/>
     <prop id="wattage_off" value="10"/>
   </host>

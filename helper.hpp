@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cmath>
 #include <map>
 
 #ifndef HELPER_H // include guard
@@ -17,15 +18,19 @@ enum JobState {
 class Job {
 public:
   int job_id; // job_id of this job
-  int num_cpus; // number of CPUs to be distributed on
-  double computation_cost; // computation per cpu
+  int nodes; // number of nodes required
+  int tasks_per_node; // number of tasks per node
+  int cpus_per_task; // number of tasks per cpu
+  double computation_cost; // computation per core
   int priority; // higher number means higher priority
   std::vector<int> p_job_id; // jobs on which this job is dependent
   JobState job_state;
-  Job(int ji = 0, int nc = 0, double cc = 0.0, int prty = 0,
-      std::vector<int> prnt = std::vector<int>()) {
+  Job(int ji = 0, int n = 0, int tpn = 0, int cpt = 0,
+      double cc = 0.0, int prty = 0, std::vector<int> prnt = std::vector<int>()) {
     job_id = ji;
-    num_cpus = nc;
+    nodes = n;
+    tasks_per_node = tpn;
+    cpus_per_task = cpt;
     computation_cost = cc;
     priority = prty;
     p_job_id = prnt;
@@ -34,8 +39,10 @@ public:
 
   friend std::ostream & operator << (std::ostream &os, const Job &j) {
     os << "Job id = " << j.job_id <<'\n';
-    os << "Num cpus = " << j.num_cpus << '\n';
-    os << "Computation volume = " << j.computation_cost <<'\n';
+    os << "Num nodes = " << j.nodes << '\n';
+    os << "Num tasks per node = " << j.tasks_per_node << '\n';
+    os << "Num cpus per task = " << j.cpus_per_task << '\n';
+    os << "Computation volume per core = " << j.computation_cost <<'\n';
     os << "Priority = " << j.priority << '\n';
     os << "Job state = " << j.job_state <<'\n';
     os << "Parent jobs: ";
@@ -50,7 +57,7 @@ public:
 
 Job* getJobFromStr(std::string line) {
   std::string str = "";
-  int ji, nc, prty;
+  int ji, n, tpn, cpt, prty;
   double cc;
   std::vector<int> prnt;
   int count = 0;
@@ -59,10 +66,14 @@ Job* getJobFromStr(std::string line) {
       if (count == 0){
         ji = stoi(str);
       } else if (count == 1) {
-        nc = stoi(str);
+        n = stoi(str);
       } else if (count == 2) {
-        cc = stod(str);
+        tpn = stoi(str);
       } else if (count == 3) {
+        cpt = stoi(str);
+      } else if (count == 4) {
+        cc = floor(stod(str)/n*tpn*cpt);
+      } else if (count == 5) {
         prty = stoi(str);
       } else {
         if (str != "") {
@@ -76,7 +87,7 @@ Job* getJobFromStr(std::string line) {
       str+=line[i];
     }
   }
-  Job *j = new Job(ji, nc, cc, prty, prnt);
+  Job *j = new Job(ji, n, tpn, cpt, cc, prty, prnt);
   return j;
 }
 
