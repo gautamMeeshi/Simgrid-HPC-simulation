@@ -28,6 +28,9 @@ class SlurmCtlD {
   std::vector<std::string> host_name;
   std::string scheduler_type;
   int num_nodes;
+  long runnable_jobs;
+  long completed_jobs;
+  std::map<int, JobLogs> job_logs;
 
 public:
   explicit SlurmCtlD(std::vector<std::string> args)
@@ -64,6 +67,8 @@ public:
           if (jobs[msg->jobs_completed[j]]->nodes == 0) {
             jobs[msg->jobs_completed[j]]->job_state = COMPLETED;
             XBT_INFO("Completed job %i", msg->jobs_completed[j]);
+            completed_jobs++;
+            job_logs[msg->jobs_completed[j]].end_time = sg4::Engine::get_clock();
           }
         }
       }
@@ -109,6 +114,14 @@ public:
     removeJobsWoParents();
   }
 
+  void preSetup() {
+    runnable_jobs = jobs.size();
+    completed_jobs = 0;
+    for (int i=0; i < jobs.size(); i++) {
+      job_logs[jobs[i]->job_id] = JobLogs();
+    }
+  }
+
   void operator()()
   {
     // remove the jobs that can not be run
@@ -122,6 +135,7 @@ public:
     }
     XBT_INFO("Total number of CPUs %i", free_cpu_sum);
     removeJobs();
+    preSetup();
     jobs_remaining = jobs.size(); // ASSUMPTION - all the jobs are in PENDING state
 
     while (jobs_remaining > 0) {
@@ -139,11 +153,13 @@ public:
         if (scheduled_jobs[i]->sig == RUN) {
           for (int j=0; j < scheduled_jobs[i]->jobs.size(); j++) {
             jobs_scheduled.insert(scheduled_jobs[i]->jobs[j]->job_id);
+            job_logs[scheduled_jobs[i]->jobs[j]->job_id].nodes_running.push_back(i);
           }
         }
       }
       for (auto& job_id: jobs_scheduled) {
         XBT_INFO("Started job %i", job_id);
+        job_logs[job_id].start_time = sg4::Engine::get_clock();
       }
       
       for (int i=0; i<SlurmDs.size(); i++) {
@@ -153,9 +169,17 @@ public:
     }
     // All jobs have completed
     // Send terminate signal to all the SlurmDs
-    XBT_INFO("All jobs scheduled collecting the final log");
-    free_cpu_sum = receiveSlurmdMsgs();
-    XBT_INFO("Number of free cpus in total %i", free_cpu_sum);
+    XBT_INFO("All jobs scheduled");
+    while (completed_jobs != runnable_jobs) {
+      // wait until all jobs have completed
+      free_cpu_sum = receiveSlurmdMsgs();
+      for (int i=0; i < SlurmDs.size(); i++) {
+        SlurmDs[i]->put(new SlurmCtldMsg(IDLE), communicate_cost);
+      }
+      sg4::this_actor::sleep_for(9);
+    }
+    // send termination request
+    receiveSlurmdMsgs();
     for (int i=0; i < SlurmDs.size(); i++) {
       SlurmDs[i]->put(new SlurmCtldMsg(STOP), communicate_cost);
     }

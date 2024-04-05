@@ -46,4 +46,16 @@ public:
     int free_cpus;
 };
 
+class JobLogs {
+public:
+    long start_time;
+    long end_time;
+    std::vector<int> nodes_running;
+    JobLogs (long st = 0, long et = 0, std::vector<int> nr = std::vector<int>()) {
+        start_time = st;
+        end_time = et;
+        nodes_running = nr;
+    }
+};
+
 #endif
