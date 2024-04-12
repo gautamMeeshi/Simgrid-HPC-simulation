@@ -122,6 +122,53 @@ public:
     }
   }
 
+  void collectStoreStats(void) {
+    std::vector<InfoMsg*> log_msgs;
+    for (int i=0; i < SlurmDs.size(); i++) {
+      InfoMsg* msg = SlurmDs[i]->get<InfoMsg>();
+      log_msgs.push_back(msg);  
+    }
+    std::ofstream stats_file("energy_stats.csv");
+    for (int i=0; i < host_name.size(); i++) {
+      stats_file << host_name[i];
+      if (i == host_name.size()-1) {
+        stats_file << '\n';
+      } else {
+        stats_file << ", ";
+      }
+    }
+    long long int line_no = 0;
+    bool end = false;
+    while (!end) {
+      for (int i=0; i < log_msgs.size(); i++) {
+        if (line_no == log_msgs[i]->energy_log.size()) {
+          end = true;
+          break;
+        }
+        stats_file << '(' << log_msgs[i]->energy_log[line_no].first << ',' << log_msgs[i]->energy_log[line_no].second << ")";
+        if (i == log_msgs.size()-1) {
+          stats_file << '\n';
+        } else {
+          stats_file << ", ";
+        }
+      }
+    }
+    stats_file.close();
+    std::ofstream job_stats_file("job_stats.csv");
+    job_stats_file << "job_id, start_time, end_time, nodes_run_on\n";
+    for (auto it = job_logs.begin(); it != job_logs.end(); it++) {
+      job_stats_file << it->first << ", " << it->second.start_time << ", " << it->second.end_time << " , (";
+      for (int i=0; i < it->second.nodes_running.size(); i++) {
+        job_stats_file << it->second.nodes_running[i];
+        if (i < it->second.nodes_running.size()-1) {
+          job_stats_file << ", ";
+        }
+      }
+      job_stats_file << ")\n";
+    }
+    job_stats_file.close();
+  }
+
   void operator()()
   {
     // remove the jobs that can not be run
@@ -183,11 +230,14 @@ public:
     for (int i=0; i < SlurmDs.size(); i++) {
       SlurmDs[i]->put(new SlurmCtldMsg(STOP), communicate_cost);
     }
-    XBT_INFO("SlurmCtlD exiting");
     // clean up the jobs
     for (auto it = jobs.begin(); it != jobs.end(); it++) {
       delete it->second;
     }
+    // collect the logs from the slurmds
+    collectStoreStats();
+    
+    XBT_INFO("SlurmCtlD exiting");
   }
 };
 
@@ -198,14 +248,19 @@ class SlurmD {
   sg4::Mailbox *mymailbox;
   sg4::Mailbox *masterMailBox;
   std::vector<int> running_job_ids;
+  std::vector<std::pair<double, double>> energy_log;
+  int counter;
   int num_cpus;
   SlurmdState state;
+  std::string my_name;
+
 public:
   explicit SlurmD(std::vector<std::string> args)
   {
 
     masterMailBox = sg4::Mailbox::by_name(args[1]);
-    mymailbox = sg4::Mailbox::by_name(sg4::this_actor::get_host()->get_name());
+    my_name = sg4::this_actor::get_host()->get_name();
+    mymailbox = sg4::Mailbox::by_name(my_name);
 
     for (unsigned int i = 2; i < args.size(); i++) {
       cpus.push_back(sg4::Host::by_name(args[i]));
@@ -213,11 +268,17 @@ public:
     }
     num_cpus = cpus.size();
     XBT_INFO("Got %zu cpus", cpus.size());
+    counter = 0;
   }
 
   void operator()()
   {
     for (;;) {
+      if (counter == 1000) {
+        counter = 0;
+        energy_log.push_back({sg4::Engine::get_clock(), sg_host_get_consumed_energy(sg4::this_actor::get_host())});
+      }
+      counter++;
       /*
       Put the status of cpus to the SlurmCtlD
       Get the computation amount
@@ -274,6 +335,7 @@ public:
         // do nothing;
       } else if (msg->sig == STOP) {
         // end the simulation
+        mymailbox->put(new InfoMsg(energy_log), communicate_cost);
         break;
       }
       delete msg;

@@ -58,4 +58,12 @@ public:
     }
 };
 
+class InfoMsg {
+public:
+    std::vector<std::pair<double, double>> energy_log;
+    InfoMsg (std::vector<std::pair<double, double>> e) {
+        energy_log = e;
+    } 
+};
+
 #endif
