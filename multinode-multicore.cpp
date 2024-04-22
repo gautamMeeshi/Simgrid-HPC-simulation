@@ -126,7 +126,7 @@ public:
     std::vector<InfoMsg*> log_msgs;
     for (int i=0; i < SlurmDs.size(); i++) {
       InfoMsg* msg = SlurmDs[i]->get<InfoMsg>();
-      log_msgs.push_back(msg);  
+      log_msgs.push_back(msg);
     }
     std::ofstream stats_file("energy_stats.csv");
     for (int i=0; i < host_name.size(); i++) {
@@ -152,6 +152,7 @@ public:
           stats_file << ", ";
         }
       }
+      line_no++;
     }
     stats_file.close();
     std::ofstream job_stats_file("job_stats.csv");
@@ -274,7 +275,7 @@ public:
   void operator()()
   {
     for (;;) {
-      if (counter == 1000) {
+      if (counter == 10000) {
         counter = 0;
         energy_log.push_back({sg4::Engine::get_clock(), sg_host_get_consumed_energy(sg4::this_actor::get_host())});
       }
