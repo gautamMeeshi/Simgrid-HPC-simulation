@@ -1,13 +1,8 @@
-#include <iostream>
 #include <arpa/inet.h>
 #include <cstring>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <sys/types.h> 
 #include <sys/socket.h>
-#include <netinet/in.h>
 int main() {
    int sock = 0, valread;
    struct sockaddr_in serv_addr;

@@ -31,6 +31,7 @@ class SlurmCtlD {
   long runnable_jobs;
   long completed_jobs;
   std::map<int, JobLogs> job_logs;
+  Scheduler *scheduler;
 
 public:
   explicit SlurmCtlD(std::vector<std::string> args)
@@ -41,6 +42,7 @@ public:
     
     job_file_name = args[1];
     scheduler_type = args[2];
+    scheduler = new Scheduler(scheduler_type);
     mymailbox = sg4::Mailbox::by_name(sg4::this_actor::get_host()->get_name());
     jobs = parseJobFile(job_file_name);
 
@@ -192,7 +194,7 @@ public:
       free_cpu_sum = receiveSlurmdMsgs();
       XBT_DEBUG("Number of free cpus in total %i", free_cpu_sum);
 
-      std::vector<SlurmCtldMsg*> scheduled_jobs = scheduler(jobs, resrcs, scheduler_type, jobs_remaining);
+      std::vector<SlurmCtldMsg*> scheduled_jobs = scheduler->schedule(jobs, resrcs, jobs_remaining);
       xbt_assert(scheduled_jobs.size() == SlurmDs.size(),
                  "Scheduler output size not same as the number of SlurmDs");
       std::set<int> jobs_scheduled; 
