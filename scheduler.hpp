@@ -160,7 +160,7 @@ public:
         return res;
     }
 
-    std::vector<SlurmCtldMsg*> neural_network_scheduler(std::vector<Job*> &jobs,
+    std::vector<SlurmCtldMsg*> neural_network_scheduler(std::map<int, Job*> &jobs,
                                                         std::vector<Resource> &resrc,
                                                         long &jobs_remaining) {
         // create json req string
@@ -180,23 +180,25 @@ public:
         pt::ptree root;
         root.put("free_nodes", free_nodes);
         pt::ptree jobs_json;
-        for (int i=0; i < jobs.size(); i++) {
-            pt::ptree job;
-            job.push_back(std::make_pair("", pt::ptree()));
-            job.back().second.put_value(jobs[i]->job_id);
-            job.push_back(std::make_pair("", pt::ptree()));
-            job.back().second.put_value(jobs[i]->nodes);
-            job.push_back(std::make_pair("", pt::ptree()));
-            job.back().second.put_value(jobs[i]->tasks_per_node);
-            job.push_back(std::make_pair("", pt::ptree()));
-            job.back().second.put_value(jobs[i]->cpus_per_task);
-            pt::ptree p_job_id;
-            for (int d=0; d < jobs[i]->p_job_id.size(); d++) {
-                p_job_id.push_back(std::make_pair("", pt::ptree()));
-                p_job_id.back().second.put_value(jobs[i]->p_job_id[d]);
-            }
-            job.push_back(std::make_pair("", p_job_id));
-            jobs_json.push_back(std::make_pair("", job));
+        for (auto it = jobs.begin(); it != jobs.end(); it++) {
+                pt::ptree job;
+                job.push_back(std::make_pair("", pt::ptree()));
+                job.back().second.put_value(it->second->job_id);
+                job.push_back(std::make_pair("", pt::ptree()));
+                job.back().second.put_value(jobState2Int(it->second->job_state));
+                job.push_back(std::make_pair("", pt::ptree()));
+                job.back().second.put_value(it->second->nodes);
+                job.push_back(std::make_pair("", pt::ptree()));
+                job.back().second.put_value(it->second->tasks_per_node);
+                job.push_back(std::make_pair("", pt::ptree()));
+                job.back().second.put_value(it->second->cpus_per_task);
+                pt::ptree p_job_id;
+                for (int d=0; d < it->second->p_job_id.size(); d++) {
+                    p_job_id.push_back(std::make_pair("", pt::ptree()));
+                    p_job_id.back().second.put_value(it->second->p_job_id[d]);
+                }
+                job.push_back(std::make_pair("", p_job_id));
+                jobs_json.push_back(std::make_pair("", job));
         }
         root.add_child("jobs", jobs_json);
         std::ostringstream oss;
@@ -206,37 +208,37 @@ public:
         const char *cstr_ptr = json_string.c_str();
         send(sock,cstr_ptr, strlen(cstr_ptr), 0);
         // receive the response
-        char buffer[1024] = {0};
-        int output_len = read(sock, buffer, 1024);
+        char buffer[10000] = {0};
+        int output_len = read(sock, buffer, 10000);
         // parse and distribute the response the response
+        std::vector<int> r_jids = str2IntList(buffer, output_len);
         int j = 0;
-        for (int i=0; i < output_len; i++) {
-            if (buffer[i] == '1') {
-                // schedule the job
-                nodes_distributed_on = 0;
-                while (j<resrc.size()) { // iterate over the nodes
-                    if (resrc[j].node_state == FREE) {
-                        Job *job_subset = new Job(jobs[i]->job_id, 1,
-                                                  jobs[i]->tasks_per_node,
-                                                  jobs[i]->cpus_per_task,
-                                                  jobs[i]->computation_cost,
-                                                  jobs[i]->priority,
-                                                  jobs[i]->p_job_id);
-                        res[j]->jobs.push_back(job_subset);
-                        res[j]->sig = RUN;
-                        resrc[j].free_cpus = 0;
-                        resrc[j].node_state = BUSY;
-                        total_free_nodes--;
-                        nodes_distributed_on++;
-                        if (nodes_distributed_on == jobs[i]->nodes) {
-                            jobs[i]->job_state = RUNNING;
-                            jobs_remaining--;
-                            j++;
-                            break;
-                        }
+        auto it = jobs.begin();
+        for (int i=0; i < r_jids.size(); i++) {
+            // schedule the job
+            nodes_distributed_on = 0;
+            while (j<resrc.size()) { // iterate over the nodes
+                if (resrc[j].node_state == FREE) {
+                    Job *job_subset = new Job(r_jids[i], 1,
+                                              jobs[r_jids[i]]->tasks_per_node,
+                                              jobs[r_jids[i]]->cpus_per_task,
+                                              jobs[r_jids[i]]->computation_cost,
+                                              jobs[r_jids[i]]->priority,
+                                              jobs[r_jids[i]]->p_job_id);
+                    res[j]->jobs.push_back(job_subset);
+                    res[j]->sig = RUN;
+                    resrc[j].free_cpus = 0;
+                    resrc[j].node_state = BUSY;
+                    total_free_nodes--;
+                    nodes_distributed_on++;
+                    if (nodes_distributed_on == jobs[r_jids[i]]->nodes) {
+                        jobs[r_jids[i]]->job_state = RUNNING;
+                        jobs_remaining--;
+                        j++;
+                        break;
                     }
-                    j++;
                 }
+                j++;
             }
         }
         return res;
@@ -250,7 +252,7 @@ public:
         if (type == "fcfs_backfill") {
             res = fcfs_backfill_scheduler(runnable_jobs, resrc, jobs_remaining);
         } else if (type == "neural_network") {
-            res = neural_network_scheduler(runnable_jobs, resrc, jobs_remaining);
+            res = neural_network_scheduler(jobs, resrc, jobs_remaining);
         } else {
             res = fcfs_scheduler(runnable_jobs, resrc, jobs_remaining);
         }

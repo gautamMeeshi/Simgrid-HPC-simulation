@@ -1,0 +1,39 @@
+Model1
+
+Heuristics for making a scheduler - 
+1) Job first in queue will get first to execute
+    Ps = 1/(job_id - least_pending_job_id)
+2) Number of dependent jobs affect the priority
+3) The closeness of the dependent jobs to the job increases the priority
+    This can be incorporated as
+    Pf= Pj + sum (wi*Pfi), where Pi is the priority score of the dependent job
+                            wi is the weight that considers the closeness of the job i in the sequence
+    0.1/
+4) Less computation higher priority since it can finish early.
+   Relinquishing the nodes for other jobs.
+   Otherwise it needs to wait for jobs.
+   Pc = 1/sqrt(computation)
+5) More the number of nodes lesser the priority.
+   As it can block more jobs. When it is running.
+   Pn = 1/nodes
+6) Pj = as*Ps + ac*Pc + an*Pn; as, ac, an are weights respectively. Weights need to be learned.
+
+To start with we can take as = 0.5, ac = 0.4, an = 0.1
+
+How to learn the weights?
+reinforcement learning by following the gradient.
+
+
+Model 2
+
+How to fit the neural network here?
+Create a neural network that takes the list of jobs and outputs the priority
+number of each job.
+This priority sequence is used for scheduling?
+
+How to train?
+Initially make it mimic the model 1 as it is.
+Then need to do RL - tricky
+
+What will be the neural network architecture?
+Put layers randomly for now

@@ -121,4 +121,33 @@ bool jobExists(std::vector<Job*> jobs, int job_id) {
   return false;
 }
 
+std::vector<int> str2IntList(char *arr, int len) {
+  std::string temp = "";
+  std::vector<int> res;
+  for (int i=0; i<len; i++) {
+    if (arr[i] == ',') {
+      res.push_back(stoi(temp));
+      temp = "";
+    }
+  }
+  if (temp != "") {
+    res.push_back(stoi(temp));
+  }
+  return res;
+}
+
+int jobState2Int(JobState j) {
+  switch (j) {
+    case PENDING:
+      return 0;
+    case RUNNING:
+      return 1;
+    case COMPLETED:
+      return 2;
+    case PREEMPTED:
+      return 3;
+  }
+  return -1;
+}
+
 #endif
