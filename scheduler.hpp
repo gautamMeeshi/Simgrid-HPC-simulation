@@ -190,13 +190,13 @@ public:
         send(sock,cstr_ptr, strlen(cstr_ptr), 0);
         // receive the response
         char buffer[1024*16] = {0};
-        int output_len = read(sock, buffer, 1024*16);
+        int output_len = read(sock, buffer, 1024*16) - 3;
         // parse and distribute the response the response
         // std::vector<int> to_run = str2IntList(buffer, recv_len);
         assert(output_len == jobsv.size());
         int j = 0;
         for (int i=0; i < output_len; i++) {
-            if (buffer[i] == '1') {
+            if (buffer[i+3] == '1' && jobsv[i]->nodes <= total_free_nodes) {
                 // schedule the job
                 nodes_distributed_on = 0;
                 while (j<resrc.size()) { // iterate over the nodes

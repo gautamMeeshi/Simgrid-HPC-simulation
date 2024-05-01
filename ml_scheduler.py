@@ -2,6 +2,12 @@ import socket
 import json
 
 def parseJobsJson(jobs_json):
+    '''
+    input - list of [[jid, nn, tpn, cpt, [pid1, pid2]], []  . . . .]
+    output - dictionary
+    key : job_id
+    value : list (jid, nn, tpn, cpt, [pid1, pid2, ...])
+    '''
     jobs_json = json.loads(jobs_json)
     jobs = {}
     for j in jobs_json:
@@ -19,17 +25,81 @@ def parseJobsJson(jobs_json):
     return jobs
 
 def allParentsCompleted(jobs, p_job_ids):
+    '''
+    input - jobs dictionary, parent jod id list
+    output - whether all the jobs with the parent job id have completed?
+    '''
     for p in p_job_ids:
         if (jobs[p][1] != 2):
             return False
     return True
 
 def getRunnableJobs(jobs):
+    '''
+    input - jobs dictionary
+    output - the jobs for which all the parents jobs have completed
+    '''
     res = []
     for jid in jobs:
         if (jobs[jid][1] == 0 and allParentsCompleted(jobs, jobs[jid][5])):
             res.append(jobs[jid])
     return res
+
+def calculateJobPriorityScores(jobs):
+    '''
+    returns a dictionary
+    key job_id
+    value score
+    '''
+    least_jid = min(jobs.keys())
+    Pf = {}
+    dependent = {}
+    for jid in jobs:
+        dependent[jid] = []
+        if (jobs[jid][1] == 2):
+            continue # skip the score calculation for the jobs that have completed
+        Ps = 1/(jid + 1 - least_jid) # give more priority to the jobs according to the queue
+        Pc = 1/jobs[jid][4]**0.5 # give more priority to the jobs that have lesser computation
+        Pn = 1/jobs[jid][2] # give more priority to the jobs that reserve lesser number of nodes
+        Pf[jid] = 0.5*Ps + 0.4*Pc + 0.1*Pn # weighted sum of the factors
+        for pid in jobs[jid][5]:
+            dependent[pid].append(jid)
+    for jid in jobs: # jobs having more dependent jobs 
+        if (jobs[jid][1] == 2):
+            continue
+        for cid in dependent[jid]:
+            Pf[jid] += 0.1/(cid-jid)*Pf[cid]
+    return Pf
+
+def heuristic_scheduler(json_data):
+    '''
+    Input - json data
+        {
+        'free_nodes': bit_string,
+        'jobs': [ [j, job_state, nn, tpn, cpt, [job_id1, job_id2,..]], ...]
+        }
+    Output - string containing the command seperated list of job_ids to run
+    '''
+    num_free_nodes = json_data['free_nodes'].count('1')
+    jobs = parseJobsJson(json_data['jobs'])
+    runnable_jobs = getRunnableJobs(jobs)
+    rids = [job[0] for job in runnable_jobs]
+    job_priority_scores = calculateJobPriorityScores(jobs)
+    runnable_jobs.sort(key = lambda x: job_priority_scores[x[0]])
+    jobs_to_run = {}
+    for i in range(len(runnable_jobs)):
+        if (runnable_jobs[i][2] <= num_free_nodes):
+            jobs_to_run[runnable_jobs[i][0]] = True
+            num_free_nodes -= runnable_jobs[i][2]
+        else:
+            break
+    output = 'run'
+    for jid in rids:
+        if (jid in jobs_to_run):
+            output += '1'
+        else:
+            output += '0'
+    return output
 
 def fcfsBackfillScheduler(json_data):
     '''
@@ -43,7 +113,7 @@ def fcfsBackfillScheduler(json_data):
     num_free_nodes = json_data['free_nodes'].count('1')
     jobs = parseJobsJson(json_data['jobs'])
     runnable_jobs = getRunnableJobs(jobs)
-    output = ''
+    output = 'run'
     for i in range(len(runnable_jobs)):
         if (runnable_jobs[i][2] <= num_free_nodes):
             # output += str(runnable_jobs[i][0])+','
@@ -70,8 +140,12 @@ print("socket is listening")
 clientSocket, addr = skt.accept()
 
 while True:
+    # try:
     req = clientSocket.recv(2**10*10).decode()
-    res = fcfsBackfillScheduler(json.loads(req))
+    res = heuristic_scheduler(json.loads(req))
     clientSocket.send(res.encode())
+    # except Exception as e:
+    #     print(e)
+    #     break
 
 clientSocket.close()
