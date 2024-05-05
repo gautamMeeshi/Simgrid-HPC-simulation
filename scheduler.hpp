@@ -31,6 +31,7 @@ class Scheduler {
 private:
     std::string type;
     int sock;
+    int curr_free_nodes;
 public:
     Scheduler(std::string scheduler_type) {
         type = scheduler_type;
@@ -81,6 +82,10 @@ public:
             }
             res.push_back(new SlurmCtldMsg());
         }
+        if (total_free_nodes == curr_free_nodes) {
+            return res;
+        }
+        curr_free_nodes = total_free_nodes;
         int i = 0;
         int j = 0;
         while (i < jobs.size()) {
@@ -127,6 +132,10 @@ public:
             }
             res.push_back(new SlurmCtldMsg());
         }
+        if (total_free_nodes == curr_free_nodes) {
+            return res;
+        }
+        curr_free_nodes = total_free_nodes;
         int j = 0;
         for (int i=0; i < jobs.size(); i++) {
             int nodes_distributed_on = 0;
@@ -161,9 +170,9 @@ public:
         return res;
     }
 
-    std::vector<SlurmCtldMsg*> neural_network_scheduler(std::map<int, Job*> &jobs,
-                                                        std::vector<Resource> &resrc,
-                                                        long &jobs_remaining) {
+    std::vector<SlurmCtldMsg*> remote_fcfs_backfill_scheduler(std::map<int, Job*> &jobs,
+                                                              std::vector<Resource> &resrc,
+                                                              long &jobs_remaining) {
         // create json req string
         std::string free_nodes;
         std::vector<SlurmCtldMsg*> res;
@@ -178,6 +187,10 @@ public:
             }
             res.push_back(new SlurmCtldMsg());
         }
+        if (total_free_nodes == curr_free_nodes) {
+            return res;
+        }
+        curr_free_nodes = total_free_nodes;
         std::vector<Job*> jobsv = getRunnableJobs(jobs);
         pt::ptree root;
         root.put("free_nodes", free_nodes);
@@ -195,8 +208,8 @@ public:
         // std::vector<int> to_run = str2IntList(buffer, recv_len);
         assert(output_len == jobsv.size());
         int j = 0;
-        for (int i=0; i < output_len; i++) {
-            if (buffer[i+3] == '1' && jobsv[i]->nodes <= total_free_nodes) {
+        for (int i=3; i < output_len; i++) {
+            if (buffer[i] == '1' && jobsv[i]->nodes <= total_free_nodes) {
                 // schedule the job
                 nodes_distributed_on = 0;
                 while (j<resrc.size()) { // iterate over the nodes
@@ -220,8 +233,76 @@ public:
                             break;
                         }
                     }
+                    j++;
                 }
-                j++;
+            }
+        }
+        return res;
+    }
+
+    std::vector<SlurmCtldMsg*> neural_network_scheduler(std::map<int, Job*> &jobs,
+                                                        std::vector<Resource> &resrc,
+                                                        long &jobs_remaining) {
+        std::string free_nodes;
+        std::vector<SlurmCtldMsg*> res;
+        int total_free_nodes = 0;
+        int nodes_distributed_on = 0;
+        for (int i=0; i < resrc.size(); i++) {
+            if (resrc[i].node_state == FREE) {
+                free_nodes += "1";
+                total_free_nodes++;
+            } else {
+                free_nodes += "0";
+            }
+            res.push_back(new SlurmCtldMsg());
+        }
+        if (total_free_nodes == curr_free_nodes) {
+            return res;
+        }
+        curr_free_nodes = total_free_nodes;
+        std::vector<Job*> jobsv = getRunnableJobs(jobs);
+        pt::ptree root;
+        root.put("free_nodes", free_nodes);
+        root.put("jobs", convertJobs2Str(jobsv));
+        std::ostringstream oss;
+        pt::write_json(oss, root);
+        std::string json_string = oss.str();
+        // send using the socket
+        const char *cstr_ptr = json_string.c_str();
+        send(sock,cstr_ptr, strlen(cstr_ptr), 0);
+        // receive the response
+        char buffer[1024*16] = {0};
+        int output_len = read(sock, buffer, 1024*16) - 3;
+        // parse and distribute the response the response
+        assert(output_len == jobsv.size());
+        int j = 0;
+        for (int i=3; i < output_len; i++) {
+            if (buffer[i] == '1' && jobsv[i]->nodes <= total_free_nodes) {
+                // schedule the job
+                nodes_distributed_on = 0;
+                while (j<resrc.size()) { // iterate over the nodes
+                    if (resrc[j].node_state == FREE) {
+                        Job *job_subset = new Job(jobsv[i]->job_id, 1,
+                                                  jobsv[i]->tasks_per_node,
+                                                  jobsv[i]->cpus_per_task,
+                                                  jobsv[i]->computation_cost,
+                                                  jobsv[i]->priority,
+                                                  jobsv[i]->p_job_id);
+                        res[j]->jobs.push_back(job_subset);
+                        res[j]->sig = RUN;
+                        resrc[j].free_cpus = 0;
+                        resrc[j].node_state = BUSY;
+                        total_free_nodes--;
+                        nodes_distributed_on++;
+                        if (nodes_distributed_on == jobsv[i]->nodes) {
+                            jobsv[i]->job_state = RUNNING;
+                            jobs_remaining--;
+                            j++;
+                            break;
+                        }
+                    }
+                    j++;
+                }
             }
         }
         return res;
@@ -234,6 +315,8 @@ public:
         std::vector<SlurmCtldMsg*> res;
         if (type == "fcfs_backfill") {
             res = fcfs_backfill_scheduler(runnable_jobs, resrc, jobs_remaining);
+        } else if (type == "remote_fcfs_backfill") {
+            res = remote_fcfs_backfill_scheduler(jobs, resrc, jobs_remaining);
         } else if (type == "neural_network") {
             res = neural_network_scheduler(jobs, resrc, jobs_remaining);
         } else {

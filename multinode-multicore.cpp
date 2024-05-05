@@ -25,6 +25,7 @@ class SlurmCtlD {
   sg4::Mailbox *mymailbox;
   std::map<int, Job*> jobs;
   std::vector<Resource> resrcs;
+  std::vector<int> node_2_job;
   std::vector<std::string> host_name;
   std::string scheduler_type;
   int num_nodes;
@@ -50,6 +51,7 @@ public:
       SlurmDs.push_back(sg4::Mailbox::by_name(args[i]));
       resrcs.push_back(Resource());
       host_name.push_back(args[i]);
+      node_2_job.push_back(-1);
     }
     num_nodes = SlurmDs.size();
     XBT_INFO("Total number of  %zu nodes", SlurmDs.size());
@@ -64,17 +66,27 @@ public:
       free_cpu_sum += resrcs[i].free_cpus;
 
       for (int j=0; j<msg->jobs_completed.size(); j++) {
-        if (msg->jobs_completed[j] != -1 && jobs[msg->jobs_completed[j]]->job_state != COMPLETED) {
-          jobs[msg->jobs_completed[j]]->nodes--;
-          if (jobs[msg->jobs_completed[j]]->nodes == 0) {
-            jobs[msg->jobs_completed[j]]->job_state = COMPLETED;
-            XBT_INFO("Completed job %i", msg->jobs_completed[j]);
+        if (msg->jobs_completed[j] != -1) {
+          int c_job_id = msg->jobs_completed[j];
+          xbt_assert(jobs[c_job_id]->job_state != COMPLETED);
+          jobs[c_job_id]->nodes--;
+          if (jobs[c_job_id]->nodes == 0) {
+            jobs[c_job_id]->job_state = COMPLETED;
+            for (int i=0; i < job_logs[c_job_id].nodes_running.size(); i++) {
+              node_2_job[i] = -1;
+            }
+            XBT_INFO("Completed job %i", c_job_id);
             completed_jobs++;
-            job_logs[msg->jobs_completed[j]].end_time = sg4::Engine::get_clock();
+            job_logs[c_job_id].end_time = sg4::Engine::get_clock();
           }
         }
       }
       delete msg;
+    }
+    for (int i=0; i < SlurmDs.size(); i++) {
+      if (resrcs[i].node_state == FREE && node_2_job[i] != -1) {
+        resrcs[i].node_state == BUSY;
+      }
     }
     return free_cpu_sum;
   }
@@ -204,6 +216,7 @@ public:
           for (int j=0; j < scheduled_jobs[i]->jobs.size(); j++) {
             jobs_scheduled.insert(scheduled_jobs[i]->jobs[j]->job_id);
             job_logs[scheduled_jobs[i]->jobs[j]->job_id].nodes_running.push_back(i);
+            node_2_job[i] = scheduled_jobs[i]->jobs[j]->job_id;
           }
         }
       }
@@ -294,7 +307,13 @@ public:
         XBT_VERB("Computation load %f on node %d",cpus[i]->get_load(), i);
         if (cpus[i]->get_load() == 0.0) {
           if (running_job_ids[i] != -1) {
-            jobs_completed.push_back(running_job_ids[i]);
+            if (jobs_completed.size()>0) {
+              if (jobs_completed.back() != running_job_ids[i]){
+                jobs_completed.push_back(running_job_ids[i]);
+              }
+            } else {
+              jobs_completed.push_back(running_job_ids[i]);
+            }
             running_job_ids[i] = -1;
           }
           num_free_cpus++;
@@ -303,6 +322,7 @@ public:
       if (num_free_cpus == num_cpus) {
         state = FREE;
       } else {
+        jobs_completed.clear();
         state = BUSY;
       }
       mymailbox->put(new SlurmdMsg(state, num_free_cpus, jobs_completed), communicate_cost);

@@ -1,12 +1,14 @@
 import socket
 import json
+import tensorflow as tf
+import numpy as np
 
 def parseJobsJson(jobs_json):
     '''
-    input - list of [[jid, nn, tpn, cpt, [pid1, pid2]], []  . . . .]
+    input - list of [[jid, nn, tpn, cpt, comp, [pid1, pid2]], []  . . . .]
     output - dictionary
     key : job_id
-    value : list (jid, nn, tpn, cpt, [pid1, pid2, ...])
+    value : list (jid, nn, tpn, cpt, comp, [pid1, pid2, ...])
     '''
     jobs_json = json.loads(jobs_json)
     jobs = {}
@@ -124,6 +126,46 @@ def fcfsBackfillScheduler(json_data):
             output += '0'
     return output
 
+# Create a sequential model
+model = tf.keras.Sequential([
+    tf.keras.layers.Dense(128, activation='relu', input_shape=(278,)),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dense(64, activation='sigmoid')  # No activation function for final layer for regression
+])
+model.summary()
+try:
+    model.load_weights("./utils/model.weights.h5")
+    print("Model weights found, loading...")
+except Exception as e:
+    print(e)
+
+def neural_network_scheduler(json_data):
+    global model
+    output = 'run'
+    X = []
+    for i in json_data['free_nodes']:
+        if i == '1':
+            X.append(1)
+        else:
+            X.append(0)
+    #print(json_data['jobs'])
+    job_list = json.loads(json_data['jobs'])
+    for i in range(64):
+        if i < len(job_list):
+            X.append(job_list[i][1]/150)
+            X.append(job_list[i][4]/700*10**7)
+        else:
+            X.append(0)
+            X.append(0)
+    X = np.array([X])
+    Y = model.predict(X)
+    for i in range(len(job_list)):
+        if (Y[0][i] == 1):
+            output += '1'
+        else:
+            output += '0'
+    return output
+
 PORT = 8080
 ADDR = "127.0.0.1"
 skt = None
@@ -142,7 +184,7 @@ clientSocket, addr = skt.accept()
 while True:
     # try:
     req = clientSocket.recv(2**10*10).decode()
-    res = heuristic_scheduler(json.loads(req))
+    res = neural_network_scheduler(json.loads(req))
     clientSocket.send(res.encode())
     # except Exception as e:
     #     print(e)

@@ -165,4 +165,30 @@ std::string convertJobs2Str(std::map<int, Job*> job_map) {
   return str;
 }
 
+std::string convertJobs2Str(std::vector<Job*> job_vec) {
+  // input - job map (key: job_id, value: job_ptr)
+  // output - string "[job_id,nodes,tasks_per_node,cpus_per_task,[p_job_ids]],[...],[...]...""
+  std::string str = "[";
+  for (int i = 0; i < job_vec.size(); i++) {
+    str += "[";
+    Job *job_ptr = job_vec[i];
+    str += std::to_string(job_ptr->job_id) + ",";
+    str += std::to_string(job_ptr->job_state) + ",";
+    str += std::to_string(job_ptr->nodes) + ",";
+    str += std::to_string(job_ptr->tasks_per_node) + ",";
+    str += std::to_string(job_ptr->cpus_per_task) + ",";
+    str += "[";
+    for (int i=0; i<job_ptr->p_job_id.size(); i++) {
+      str += std::to_string(job_ptr->p_job_id[i]);
+      if (i != job_ptr->p_job_id.size()-1) {
+        str += ",";
+      }
+    }
+    str+="]],";
+  }
+  str = str.substr(0, str.size()-1);
+  str+="]";
+  return str;
+}
+
 #endif
