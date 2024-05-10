@@ -32,20 +32,51 @@ private:
     std::string type;
     int sock;
     int curr_free_nodes;
+    int counter;
+    bool train = false;
 public:
     Scheduler(std::string scheduler_type) {
         type = scheduler_type;
-        if (scheduler_type == "neural_network") {
+        counter = 0;
+        if (type.substr(0,6) == "remote") {
             // create sockets
             sock = socket(AF_INET, SOCK_STREAM, 0);
             struct sockaddr_in serv_addr;
             serv_addr.sin_family = AF_INET;
             serv_addr.sin_port = htons(8080);
-            if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
+            if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
                 printf("\nPANIC:Invalid address/ Address not supported \n");
             }
             if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
                 printf("\nPANIC:Connection Failed \n");
+            }
+            pt::ptree root;
+            root.put("state", "on");
+            root.put("scheduler_type", type);
+            std::ostringstream oss;
+            pt::write_json(oss, root);
+            std::string json_string = oss.str();
+            // send using the socket
+            const char *cstr_ptr = json_string.c_str();
+            send(sock,cstr_ptr, strlen(cstr_ptr), 0);
+        }
+    }
+
+    ~Scheduler() {
+        if (type.substr(0,6) == "remote") {
+            pt::ptree root;
+            root.put("state", "off");
+            std::ostringstream oss;
+            pt::write_json(oss, root);
+            std::string json_string = oss.str();
+            // send using the socket
+            const char *cstr_ptr = json_string.c_str();
+            send(sock,cstr_ptr, strlen(cstr_ptr), 0);
+            int ret = close(sock);
+            if (ret == 0) {
+                std::cout << "socket closed gracefully\n";
+            } else {
+                std::cout<< "ERROR SOCKET CLOSE, ERROR CODE "<< ret<<'\n';
             }
         }
     }
@@ -170,9 +201,9 @@ public:
         return res;
     }
 
-    std::vector<SlurmCtldMsg*> remote_fcfs_backfill_scheduler(std::map<int, Job*> &jobs,
-                                                              std::vector<Resource> &resrc,
-                                                              long &jobs_remaining) {
+    std::vector<SlurmCtldMsg*> remote_send_all_jobs(std::map<int, Job*> &jobs,
+                                                    std::vector<Resource> &resrc,
+                                                    long &jobs_remaining) {
         // create json req string
         std::string free_nodes;
         std::vector<SlurmCtldMsg*> res;
@@ -195,6 +226,7 @@ public:
         pt::ptree root;
         root.put("free_nodes", free_nodes);
         root.put("jobs", convertJobs2Str(jobs));
+        root.put("state", "on");
         std::ostringstream oss;
         pt::write_json(oss, root);
         std::string json_string = oss.str();
@@ -208,8 +240,8 @@ public:
         // std::vector<int> to_run = str2IntList(buffer, recv_len);
         assert(output_len == jobsv.size());
         int j = 0;
-        for (int i=3; i < output_len; i++) {
-            if (buffer[i] == '1' && jobsv[i]->nodes <= total_free_nodes) {
+        for (int i=0; i < output_len; i++) {
+            if (buffer[i+3] == '1' && jobsv[i]->nodes <= total_free_nodes) {
                 // schedule the job
                 nodes_distributed_on = 0;
                 while (j<resrc.size()) { // iterate over the nodes
@@ -240,13 +272,18 @@ public:
         return res;
     }
 
-    std::vector<SlurmCtldMsg*> neural_network_scheduler(std::map<int, Job*> &jobs,
+    std::vector<SlurmCtldMsg*> remote_send_runnable_jobs(std::vector<Job*> &jobs,
                                                         std::vector<Resource> &resrc,
                                                         long &jobs_remaining) {
         std::string free_nodes;
         std::vector<SlurmCtldMsg*> res;
         int total_free_nodes = 0;
         int nodes_distributed_on = 0;
+        if (counter == 10000) {
+            train = true;
+            counter = 0;
+            std::cout<<"TRAIN = TRUE\n";
+        }
         for (int i=0; i < resrc.size(); i++) {
             if (resrc[i].node_state == FREE) {
                 free_nodes += "1";
@@ -257,13 +294,31 @@ public:
             res.push_back(new SlurmCtldMsg());
         }
         if (total_free_nodes == curr_free_nodes) {
-            return res;
+            // if there is no change in the number of free nodes
+            // if no job can be scheduled then no point running the scheduling algo
+            // skip scheduling algorithm
+            bool skip = true;
+            for (int i=0; i < jobs.size(); i++) {
+                if (jobs[i]->nodes < total_free_nodes) {
+                    skip = false;
+                    break;
+                }
+            }
+            if (skip) {
+                return res;
+            }
         }
         curr_free_nodes = total_free_nodes;
-        std::vector<Job*> jobsv = getRunnableJobs(jobs);
         pt::ptree root;
         root.put("free_nodes", free_nodes);
-        root.put("jobs", convertJobs2Str(jobsv));
+        root.put("jobs", convertJobs2Str(jobs));
+        root.put("state", "on");
+        if (train) {
+            root.put("train", "True");
+            train = false;
+        } else {
+            root.put("train", "False");
+        }
         std::ostringstream oss;
         pt::write_json(oss, root);
         std::string json_string = oss.str();
@@ -274,28 +329,28 @@ public:
         char buffer[1024*16] = {0};
         int output_len = read(sock, buffer, 1024*16) - 3;
         // parse and distribute the response the response
-        assert(output_len == jobsv.size());
+        assert(output_len == jobs.size());
         int j = 0;
-        for (int i=3; i < output_len; i++) {
-            if (buffer[i] == '1' && jobsv[i]->nodes <= total_free_nodes) {
+        for (int i=0; i < output_len; i++) {
+            if (buffer[i+3] == '1' && jobs[i]->nodes <= total_free_nodes) {
                 // schedule the job
                 nodes_distributed_on = 0;
                 while (j<resrc.size()) { // iterate over the nodes
                     if (resrc[j].node_state == FREE) {
-                        Job *job_subset = new Job(jobsv[i]->job_id, 1,
-                                                  jobsv[i]->tasks_per_node,
-                                                  jobsv[i]->cpus_per_task,
-                                                  jobsv[i]->computation_cost,
-                                                  jobsv[i]->priority,
-                                                  jobsv[i]->p_job_id);
+                        Job *job_subset = new Job(jobs[i]->job_id, 1,
+                                                  jobs[i]->tasks_per_node,
+                                                  jobs[i]->cpus_per_task,
+                                                  jobs[i]->computation_cost,
+                                                  jobs[i]->priority,
+                                                  jobs[i]->p_job_id);
                         res[j]->jobs.push_back(job_subset);
                         res[j]->sig = RUN;
                         resrc[j].free_cpus = 0;
                         resrc[j].node_state = BUSY;
                         total_free_nodes--;
                         nodes_distributed_on++;
-                        if (nodes_distributed_on == jobsv[i]->nodes) {
-                            jobsv[i]->job_state = RUNNING;
+                        if (nodes_distributed_on == jobs[i]->nodes) {
+                            jobs[i]->job_state = RUNNING;
                             jobs_remaining--;
                             j++;
                             break;
@@ -311,14 +366,18 @@ public:
     std::vector<SlurmCtldMsg*> schedule(std::map<int, Job*> &jobs,
                                         std::vector<Resource> &resrc,
                                         long &jobs_remaining) {
+        counter++;
         std::vector<Job*> runnable_jobs = getRunnableJobs(jobs);
         std::vector<SlurmCtldMsg*> res;
         if (type == "fcfs_backfill") {
             res = fcfs_backfill_scheduler(runnable_jobs, resrc, jobs_remaining);
-        } else if (type == "remote_fcfs_backfill") {
-            res = remote_fcfs_backfill_scheduler(jobs, resrc, jobs_remaining);
-        } else if (type == "neural_network") {
-            res = neural_network_scheduler(jobs, resrc, jobs_remaining);
+        } else if (type == "remote_fcfs_bf" ||
+                   type == "remote_heuristic") {
+            res = remote_send_all_jobs(jobs, resrc, jobs_remaining);
+        } else if (type == "remote_neural_network" ||
+                   type == "remote_qnn" ||
+                   type == "remote_learn_neural_network") {
+            res = remote_send_runnable_jobs(runnable_jobs, resrc, jobs_remaining);
         } else {
             res = fcfs_scheduler(runnable_jobs, resrc, jobs_remaining);
         }

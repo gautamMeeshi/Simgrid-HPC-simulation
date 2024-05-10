@@ -151,6 +151,7 @@ std::string convertJobs2Str(std::map<int, Job*> job_map) {
     str += std::to_string(job_ptr->nodes) + ",";
     str += std::to_string(job_ptr->tasks_per_node) + ",";
     str += std::to_string(job_ptr->cpus_per_task) + ",";
+    str += std::to_string(job_ptr->computation_cost) + ",";
     str += "[";
     for (int i=0; i<job_ptr->p_job_id.size(); i++) {
       str += std::to_string(job_ptr->p_job_id[i]);
@@ -177,6 +178,7 @@ std::string convertJobs2Str(std::vector<Job*> job_vec) {
     str += std::to_string(job_ptr->nodes) + ",";
     str += std::to_string(job_ptr->tasks_per_node) + ",";
     str += std::to_string(job_ptr->cpus_per_task) + ",";
+    str += std::to_string(job_ptr->computation_cost) + ",";
     str += "[";
     for (int i=0; i<job_ptr->p_job_id.size(); i++) {
       str += std::to_string(job_ptr->p_job_id[i]);
@@ -186,7 +188,9 @@ std::string convertJobs2Str(std::vector<Job*> job_vec) {
     }
     str+="]],";
   }
-  str = str.substr(0, str.size()-1);
+  if (str.size() > 1) {
+    str = str.substr(0, str.size()-1);
+  }
   str+="]";
   return str;
 }

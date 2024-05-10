@@ -2,6 +2,14 @@ import socket
 import json
 import tensorflow as tf
 import numpy as np
+import random
+import threading
+
+SCHEDULER_TYPE = None
+TRAINER_THREAD = threading.Thread()
+TRAIN_NN = False
+Xs = []
+Ys = []
 
 def parseJobsJson(jobs_json):
     '''
@@ -14,13 +22,13 @@ def parseJobsJson(jobs_json):
     jobs = {}
     for j in jobs_json:
         job = []
-        for i in range(5):
+        for i in range(6):
             job.append(j[i])
         if j[5] == "":
             job.append([])
         else:
             pids = []
-            for p in j[5]:
+            for p in j[6]:
                 pids.append(int(p))
             job.append(pids)
         jobs[job[0]] = job
@@ -43,7 +51,7 @@ def getRunnableJobs(jobs):
     '''
     res = []
     for jid in jobs:
-        if (jobs[jid][1] == 0 and allParentsCompleted(jobs, jobs[jid][5])):
+        if (jobs[jid][1] == 0 and allParentsCompleted(jobs, jobs[jid][6])):
             res.append(jobs[jid])
     return res
 
@@ -61,7 +69,7 @@ def calculateJobPriorityScores(jobs):
         if (jobs[jid][1] == 2):
             continue # skip the score calculation for the jobs that have completed
         Ps = 1/(jid + 1 - least_jid) # give more priority to the jobs according to the queue
-        Pc = 1/jobs[jid][4]**0.5 # give more priority to the jobs that have lesser computation
+        Pc = 1/jobs[jid][5]**0.5 # give more priority to the jobs that have lesser computation
         Pn = 1/jobs[jid][2] # give more priority to the jobs that reserve lesser number of nodes
         Pf[jid] = 0.5*Ps + 0.4*Pc + 0.1*Pn # weighted sum of the factors
         for pid in jobs[jid][5]:
@@ -78,7 +86,7 @@ def heuristic_scheduler(json_data):
     Input - json data
         {
         'free_nodes': bit_string,
-        'jobs': [ [j, job_state, nn, tpn, cpt, [job_id1, job_id2,..]], ...]
+        'jobs': [ [j, job_state, nn, tpn, cpt, comp, [job_id1, job_id2,..]], ...]
         }
     Output - string containing the command seperated list of job_ids to run
     '''
@@ -132,12 +140,20 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dense(64, activation='relu'),
     tf.keras.layers.Dense(64, activation='sigmoid')  # No activation function for final layer for regression
 ])
+model.compile(optimizer='adam', loss='mse')
 model.summary()
 try:
     model.load_weights("./utils/model.weights.h5")
     print("Model weights found, loading...")
 except Exception as e:
     print(e)
+
+def train(X, Y):
+    global model
+    global TRAIN_NN
+    print('training with', Y.shape[0], 'data points')
+    model.fit(X, Y, epochs=10, batch_size=32, verbose=0)
+    model.save_weights("utils/model.weights.h5")
 
 def neural_network_scheduler(json_data):
     global model
@@ -148,23 +164,133 @@ def neural_network_scheduler(json_data):
             X.append(1)
         else:
             X.append(0)
-    #print(json_data['jobs'])
     job_list = json.loads(json_data['jobs'])
     for i in range(64):
         if i < len(job_list):
-            X.append(job_list[i][1]/150)
-            X.append(job_list[i][4]/700*10**7)
+            X.append(job_list[i][2]/150)
+            X.append(job_list[i][5]/700*10**7)
         else:
             X.append(0)
             X.append(0)
     X = np.array([X])
-    Y = model.predict(X)
+    Y = model.predict(X, verbose = 0)
     for i in range(len(job_list)):
-        if (Y[0][i] == 1):
+        if (i<64 and Y[0][i] > 0.5):
             output += '1'
         else:
             output += '0'
     return output
+
+INPUT = []
+OUTPUT = []
+
+def learning_neural_network(json_data):
+    '''
+    this function creates data
+    runs both neural network and fcfs
+    the input and output of fcfs is stored
+    At regular intervals the nerual network is trained against the fcfs output
+
+    For now lets completely not use the neural network output
+    '''
+    global TRAINER_THREAD
+    global TRAIN_NN
+    global Xs
+    global Ys
+    output = 'run'
+    num_free_nodes = json_data['free_nodes'].count('1')
+    job_list = json.loads(json_data['jobs'])
+    Xs.append([])
+    Ys.append([])
+    for i in json_data['free_nodes']:
+        if i == '1':
+            Xs[-1].append(1)
+        else:
+            Xs[-1].append(0)
+    for i in range(64):
+        if i < len(job_list):
+            Xs[-1].append(job_list[i][2]/150)
+            Xs[-1].append(job_list[i][5]/700*10**7)
+        else:
+            Xs[-1].append(0)
+            Xs[-1].append(0)
+    # follow fcfs_bf
+    for i in range(len(job_list)):
+        if (job_list[i][2] <= num_free_nodes):
+            output += '1'
+            Ys[-1].append(1)
+            num_free_nodes -= job_list[i][2]
+        else:
+            Ys[-1].append(0)
+            output += '0'
+    if len(Ys[-1]) > 64:
+        Ys[-1] = Ys[-1][:64]
+    else:
+        Ys[-1].extend([0]*(64-len(Ys[-1])))
+    if (json_data['train'] == 'True'):
+        # train the neural network using a different thread
+        TRAIN_NN = True
+
+    if (TRAIN_NN and TRAINER_THREAD.is_alive() == False):
+        TRAIN_NN = False
+        TRAINER_THREAD = threading.Thread(target = train, args = (np.array(Xs), np.array(Ys)))
+        TRAINER_THREAD.start()
+        Xs = []
+        Ys = []
+    return output
+
+def qnn(json_data, alpha = 0.1):
+    '''
+    90% schedule according to the neural network
+    10% take random step
+
+    record the steps taken, with the flag - nn, random
+
+    store the output for multiple runs
+
+    select the ones that decrease the energy utilization, train on them
+    '''
+    global model
+    global INPUT
+    global OUTPUT
+    output = ''
+    X = []
+    for i in json_data['free_nodes']:
+        if i == '1':
+            X.append(1)
+        else:
+            X.append(0)
+    job_list = json.loads(json_data['jobs'])
+    for i in range(64):
+        if i < len(job_list):
+            X.append(job_list[i][2]/150)
+            X.append(job_list[i][5]/700*10**7)
+        else:
+            X.append(0)
+            X.append(0)
+    if (random.random() < alpha):
+        # take random step
+        print("INFO: taking random step")
+        INPUT.append(X)
+        for i in range(len(job_list)):
+            output += str(random.randint(0,1))
+        Y = []
+        for i in range(64):
+            if i < len(job_list):
+                Y.append(int(output[i]))
+            else:
+                Y.append(0)
+        OUTPUT.append(Y)
+    else:
+        # generate neural network output
+        X = np.array([X])
+        Y = model.predict(X)
+        for i in range(len(job_list)):
+            if (Y[0][i] > 0.5):
+                output += '1'
+            else:
+                output += '0'
+    return ('run'+output)
 
 PORT = 8080
 ADDR = "127.0.0.1"
@@ -184,10 +310,43 @@ clientSocket, addr = skt.accept()
 while True:
     # try:
     req = clientSocket.recv(2**10*10).decode()
-    res = neural_network_scheduler(json.loads(req))
-    clientSocket.send(res.encode())
+    json_data = json.loads(req)
+    if json_data['state'] == 'off':
+        print("INFO: sensing remote off, stop listening")
+        break
+    if SCHEDULER_TYPE == None:
+        SCHEDULER_TYPE = json_data['scheduler_type']
+        print("INFO: SCHEDULER TYPE ", SCHEDULER_TYPE)
+    else:
+        if (SCHEDULER_TYPE == "remote_heuristic"):
+            res = heuristic_scheduler(json_data)
+        elif (SCHEDULER_TYPE == "remote_fcfs_bf"):
+            res = fcfsBackfillScheduler(json_data)
+        elif (SCHEDULER_TYPE == "remote_learn_neural_network"):
+            res = learning_neural_network(json_data)
+        elif (SCHEDULER_TYPE == "remote_neural_network"):
+            res = neural_network_scheduler(json_data)
+        elif (SCHEDULER_TYPE == "remote_qnn"):
+            res = qnn(json_data)
+        else:
+            print(f"ERROR: UNKNOWN SCHEDULER TYPE {SCHEDULER_TYPE}")
+            break
+        if res:
+            clientSocket.send(res.encode())
+        else:
+            break
     # except Exception as e:
     #     print(e)
     #     break
 
+if INPUT and OUTPUT:
+    # store the input, output mapping
+    assert(len(INPUT) == len(OUTPUT))
+    f = open('run_data.txt', 'w+')
+    f.write('input,output\n')
+    for i in range(len(INPUT)):
+        f.write(f"{INPUT[i]},{OUTPUT[i]}\n")
+    f.close()
+
+print("INFO: Closing socket")
 clientSocket.close()

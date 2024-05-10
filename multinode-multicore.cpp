@@ -9,6 +9,8 @@
 #include "scheduler.hpp"
 #include "objects.hpp"
 
+long TRAINING_INTERVAL = 50000;
+
 XBT_LOG_NEW_DEFAULT_CATEGORY(HPC, "Messages specific for this s4u example");
 namespace sg4 = simgrid::s4u;
 
@@ -189,6 +191,8 @@ public:
     // remove the jobs that can not be run
     // jobs that require more resource than available
     int free_cpu_sum = receiveSlurmdMsgs();
+    bool train = false;
+    long curr_time = sg4::Engine::get_clock();
     for (int i=0; i < SlurmDs.size(); i++) {
       resrcs[i].free_cpus = 0;
     }
@@ -205,7 +209,6 @@ public:
       // find the number of free cpus across all the nodes
       free_cpu_sum = receiveSlurmdMsgs();
       XBT_DEBUG("Number of free cpus in total %i", free_cpu_sum);
-
       std::vector<SlurmCtldMsg*> scheduled_jobs = scheduler->schedule(jobs, resrcs, jobs_remaining);
       xbt_assert(scheduled_jobs.size() == SlurmDs.size(),
                  "Scheduler output size not same as the number of SlurmDs");
@@ -222,7 +225,7 @@ public:
       }
       for (auto& job_id: jobs_scheduled) {
         XBT_INFO("Started job %i", job_id);
-        job_logs[job_id].start_time = sg4::Engine::get_clock();
+        job_logs[job_id].start_time = curr_time;
       }
       
       for (int i=0; i<SlurmDs.size(); i++) {
@@ -233,6 +236,7 @@ public:
     // All jobs have completed
     // Send terminate signal to all the SlurmDs
     XBT_INFO("All jobs scheduled");
+    delete scheduler;
     while (completed_jobs != runnable_jobs) {
       // wait until all jobs have completed
       free_cpu_sum = receiveSlurmdMsgs();
