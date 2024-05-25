@@ -9,7 +9,8 @@ const int CPUS_PER_NODE = 2;
 enum SlurmSignal {
     RUN = 0,
     STOP = 1,
-    IDLE = 2
+    IDLE = 2,
+    SLEEP = 3
 };
 
 enum SlurmdState {

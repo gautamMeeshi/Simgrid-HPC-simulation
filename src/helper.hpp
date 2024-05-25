@@ -73,7 +73,7 @@ Job* getJobFromStr(std::string line) {
       } else if (count == 3) {
         cpt = stoi(str);
       } else if (count == 4) {
-        cc = floor(stod(str)/n*tpn*cpt);
+        cc = floor(stod(str)/(n*tpn*cpt));
       } else if (count == 5) {
         prty = stoi(str);
       } else {

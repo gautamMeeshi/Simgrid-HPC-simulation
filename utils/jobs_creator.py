@@ -1,6 +1,6 @@
 import random
 
-computation_range = (500, 700)
+computation_range = (100, 700)
 nodes_range = (1, 50)
 tasks_per_node_range = (1,18)
 cpus_per_task_range = (1,4)
@@ -23,8 +23,8 @@ for i in range(num_jobs):
     nodes = random.randint(nodes_range[0], nodes_range[1])
     tpn = random.randint(tasks_per_node_range[0], tasks_per_node_range[1])
     cpt = random.randint(cpus_per_task_range[0], cpus_per_task_range[1])
-    computation = random.randint(computation_range[0],computation_range[1])*nodes*tpn*cpt
+    computation = random.randint(computation_range[0],computation_range[1])
 
-    file.write(f'''{i},{nodes},{tpn},{cpt},{computation}e7,1,({dependency_string})''')
+    file.write(f'''{i},{nodes},{tpn},{cpt},{computation}e11,1,({dependency_string})''')
     if (i<num_jobs-1):
         file.write('\n')

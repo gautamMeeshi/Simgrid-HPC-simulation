@@ -1,11 +1,9 @@
 compile_debug:
-	g++ multinode-multicore.cpp helper.hpp scheduler.hpp objects.hpp -o exec -lsimgrid -g
+	g++ src/multinode-multicore.cpp src/helper.hpp src/scheduler.hpp src/objects.hpp -o exec -lsimgrid -g
 
 compile:
-	g++ multinode-multicore.cpp helper.hpp scheduler.hpp objects.hpp -o exec -lsimgrid
+	g++ src/multinode-multicore.cpp src/helper.hpp src/scheduler.hpp src/objects.hpp -o exec -lsimgrid
+	chmod +x ./scripts/run.sh
 
 run:
-	./exec input/small_platform.xml input/deployment.xml
-
-run150:
-	./exec input/platform-5.5.6.2-torus.xml input/deployment-5.5.6.2-torus.xml
+	./scripts/run.sh ${SCHED} ${JOB_FILE} 

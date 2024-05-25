@@ -8,6 +8,7 @@
 #include "helper.hpp"
 #include "scheduler.hpp"
 #include "objects.hpp"
+#include <regex>
 
 long TRAINING_INTERVAL = 50000;
 
@@ -35,6 +36,10 @@ class SlurmCtlD {
   long completed_jobs;
   std::map<int, JobLogs> job_logs;
   Scheduler *scheduler;
+  std::vector<sg4::Host*> nodes;
+  std::string my_name;
+  int counter = 0;
+  std::vector<std::vector<std::pair<double, double>>> energy_logs;
 
 public:
   explicit SlurmCtlD(std::vector<std::string> args)
@@ -46,22 +51,31 @@ public:
     job_file_name = args[1];
     scheduler_type = args[2];
     scheduler = new Scheduler(scheduler_type);
-    mymailbox = sg4::Mailbox::by_name(sg4::this_actor::get_host()->get_name());
+    my_name = sg4::this_actor::get_host()->get_name();
+    mymailbox = sg4::Mailbox::by_name(my_name);
     jobs = parseJobFile(job_file_name);
 
     for (unsigned int i = 3; i < args.size(); i++) {
       SlurmDs.push_back(sg4::Mailbox::by_name(args[i]));
+      nodes.push_back(sg4::Host::by_name(args[i]));
       resrcs.push_back(Resource());
       host_name.push_back(args[i]);
       node_2_job.push_back(-1);
+      energy_logs.push_back(std::vector<std::pair<double, double>>());
     }
     num_nodes = SlurmDs.size();
-    XBT_INFO("Total number of  %zu nodes", SlurmDs.size());
+    XBT_INFO("Total number of nodes %zu", SlurmDs.size());
   }
 
   int receiveSlurmdMsgs() {
     int free_cpu_sum = 0;
     for (int i=0; i < SlurmDs.size(); i++) {
+      if (!nodes[i]->is_on()) {
+        resrcs[i].free_cpus = 2;// HARDCODING
+        resrcs[i].node_state = FREE;
+        free_cpu_sum += resrcs[i].free_cpus;
+        continue;
+      }
       SlurmdMsg* msg = SlurmDs[i]->get<SlurmdMsg>();
       resrcs[i].free_cpus = msg->free_cpus;
       resrcs[i].node_state = msg->state;
@@ -138,13 +152,22 @@ public:
     }
   }
 
-  void collectStoreStats(void) {
-    std::vector<InfoMsg*> log_msgs;
-    for (int i=0; i < SlurmDs.size(); i++) {
-      InfoMsg* msg = SlurmDs[i]->get<InfoMsg>();
-      log_msgs.push_back(msg);
+  void recordEnergyStats() {
+    if (counter == 1000) {
+      counter = 0;
+      double node_energy = 0;
+      
+      for (int i=0; i < nodes.size(); i++) {
+        std::string cpu1_name = regex_replace(host_name[i], std::regex("c0"), "c1");
+        node_energy = sg_host_get_consumed_energy(nodes[i]) + sg_host_get_consumed_energy(sg4::Host::by_name(cpu1_name));
+        energy_logs[i].push_back({sg4::Engine::get_clock(), node_energy});
+      }
     }
-    std::ofstream stats_file("energy_stats.csv");
+    return;
+  }
+
+  void collectStoreStats(void) {
+    std::ofstream stats_file("output/energy_stats.csv");
     for (int i=0; i < host_name.size(); i++) {
       stats_file << host_name[i];
       if (i == host_name.size()-1) {
@@ -156,13 +179,13 @@ public:
     long long int line_no = 0;
     bool end = false;
     while (!end) {
-      for (int i=0; i < log_msgs.size(); i++) {
-        if (line_no == log_msgs[i]->energy_log.size()) {
+      for (int i=0; i < energy_logs.size(); i++) {
+        if (line_no == energy_logs[i].size()) {
           end = true;
           break;
         }
-        stats_file << '(' << log_msgs[i]->energy_log[line_no].first << ',' << log_msgs[i]->energy_log[line_no].second << ")";
-        if (i == log_msgs.size()-1) {
+        stats_file << '(' << energy_logs[i][line_no].first << ',' << energy_logs[i][line_no].second << ")";
+        if (i == energy_logs.size()-1) {
           stats_file << '\n';
         } else {
           stats_file << ", ";
@@ -171,7 +194,7 @@ public:
       line_no++;
     }
     stats_file.close();
-    std::ofstream job_stats_file("job_stats.csv");
+    std::ofstream job_stats_file("output/job_stats.csv");
     job_stats_file << "job_id, start_time, end_time, nodes_run_on\n";
     for (auto it = job_logs.begin(); it != job_logs.end(); it++) {
       job_stats_file << it->first << ", " << it->second.start_time << ", " << it->second.end_time << " , (";
@@ -188,6 +211,7 @@ public:
 
   void operator()()
   {
+    counter++;
     // remove the jobs that can not be run
     // jobs that require more resource than available
     int free_cpu_sum = receiveSlurmdMsgs();
@@ -214,6 +238,19 @@ public:
                  "Scheduler output size not same as the number of SlurmDs");
       std::set<int> jobs_scheduled; 
       for (int i=0; i<SlurmDs.size(); i++) {
+        /*if (scheduled_jobs[i]->sig != RUN && !nodes[i]->is_on()) {
+          continue;
+        }
+        if (scheduled_jobs[i]->sig == IDLE && node_2_job[i] == -1) {
+          if (nodes[i]->is_on() && nodes[i]->get_name() != my_name) {
+            scheduled_jobs[i]->sig = SLEEP;
+            SlurmDs[i]->put(scheduled_jobs[i], communicate_cost);
+            continue;
+          }
+        } else if (scheduled_jobs[i]->sig == RUN && nodes[i]->is_on() == false) {
+          nodes[i]->turn_on();
+          SlurmDs[i]->get<SlurmdMsg>(); // to prevent deadlock, has no semantic meaning
+        }*/
         SlurmDs[i]->put(scheduled_jobs[i], communicate_cost);
         if (scheduled_jobs[i]->sig == RUN) {
           for (int j=0; j < scheduled_jobs[i]->jobs.size(); j++) {
@@ -241,13 +278,16 @@ public:
       // wait until all jobs have completed
       free_cpu_sum = receiveSlurmdMsgs();
       for (int i=0; i < SlurmDs.size(); i++) {
-        SlurmDs[i]->put(new SlurmCtldMsg(IDLE), communicate_cost);
+        if (nodes[i]->is_on()) {
+          SlurmDs[i]->put(new SlurmCtldMsg(IDLE), communicate_cost);
+        }
       }
       sg4::this_actor::sleep_for(9);
     }
     // send termination request
     receiveSlurmdMsgs();
     for (int i=0; i < SlurmDs.size(); i++) {
+      nodes[i]->turn_on();
       SlurmDs[i]->put(new SlurmCtldMsg(STOP), communicate_cost);
     }
     // clean up the jobs
@@ -258,6 +298,7 @@ public:
     collectStoreStats();
     
     XBT_INFO("SlurmCtlD exiting");
+
   }
 };
 
@@ -268,17 +309,16 @@ class SlurmD {
   sg4::Mailbox *mymailbox;
   sg4::Mailbox *masterMailBox;
   std::vector<int> running_job_ids;
-  std::vector<std::pair<double, double>> energy_log;
-  int counter;
   int num_cpus;
   SlurmdState state;
   std::string my_name;
+  std::string master_name;
 
 public:
   explicit SlurmD(std::vector<std::string> args)
   {
-
-    masterMailBox = sg4::Mailbox::by_name(args[1]);
+    master_name = args[1];
+    masterMailBox = sg4::Mailbox::by_name(master_name);
     my_name = sg4::this_actor::get_host()->get_name();
     mymailbox = sg4::Mailbox::by_name(my_name);
 
@@ -287,18 +327,12 @@ public:
       running_job_ids.push_back(-1);
     }
     num_cpus = cpus.size();
-    XBT_INFO("Got %zu cpus", cpus.size());
-    counter = 0;
+    XBT_VERB("Got %zu cpus", cpus.size());
   }
 
   void operator()()
   {
     for (;;) {
-      if (counter == 10000) {
-        counter = 0;
-        energy_log.push_back({sg4::Engine::get_clock(), sg_host_get_consumed_energy(sg4::this_actor::get_host())});
-      }
-      counter++;
       /*
       Put the status of cpus to the SlurmCtlD
       Get the computation amount
@@ -308,7 +342,7 @@ public:
       int num_free_cpus = 0;
       std::vector<int> jobs_completed;
       for (int i=0; i < num_cpus; i++) {
-        XBT_VERB("Computation load %f on node %d",cpus[i]->get_load(), i);
+        XBT_DEBUG("Computation load %f on node %d",cpus[i]->get_load(), i);
         if (cpus[i]->get_load() == 0.0) {
           if (running_job_ids[i] != -1) {
             if (jobs_completed.size()>0) {
@@ -330,17 +364,15 @@ public:
         state = BUSY;
       }
       mymailbox->put(new SlurmdMsg(state, num_free_cpus, jobs_completed), communicate_cost);
-      XBT_VERB("Number of free CPUs %i", num_free_cpus);
-
+      XBT_DEBUG("Number of free CPUs %i", num_free_cpus);
       SlurmCtldMsg *msg = mymailbox->get<SlurmCtldMsg>();
-
       if (msg->sig == RUN) {
         // execute the provided jobs
         xbt_assert(msg->jobs.size() == 1, "Number of jobs received is not 1 received %li", msg->jobs.size());
         for (int k=0; k < msg->jobs.size(); k++) {
           Job *j = msg->jobs[k];
           int total_threads = j->tasks_per_node * j->cpus_per_task;
-          XBT_VERB("Executing job %i of threads %i cpus of computation %f",
+          XBT_DEBUG("Executing job %i of threads %i cpus of computation %f",
                    j->job_id, total_threads, j->computation_cost);
           int cpu_idx = 0;
           while(total_threads > 0) {
@@ -349,6 +381,7 @@ public:
               double computation = j->computation_cost;
               sg4::ExecPtr exec = sg4::this_actor::exec_init(computation);
               exec->set_host(cpus[cpu_idx]);
+              cpus[cpu_idx]->turn_on();
               exec->start();
             } else {
               xbt_assert(false, "CPU still executing older a job");
@@ -360,21 +393,27 @@ public:
         }
       } else if (msg->sig == IDLE) {
         // do nothing;
+      } else if (msg->sig == SLEEP) {
+        // turn off the cpus
+        delete msg;
+        for (int i=cpus.size()-1; i>=0; i--) {
+          cpus[i]->turn_off();
+        }
       } else if (msg->sig == STOP) {
         // end the simulation
-        mymailbox->put(new InfoMsg(energy_log), communicate_cost);
+        delete msg;
         break;
       }
       delete msg;
       sg4::this_actor::sleep_for(0.1);
     }
 
-    XBT_INFO("SlurmD EXITING");
+    XBT_VERB("SlurmD EXITING");
   }
 };
 
 void generateStats(sg4::Engine &e, double exec_time) {
-  std::ofstream stats_file("stats.csv");
+  std::ofstream stats_file("output/energy_summary_stats.csv");
   XBT_INFO("---------STATS--------");
   std::vector<sg4::Host*> all_hosts= e.get_all_hosts();
   double total_energy_consumption = 0.0;
@@ -411,7 +450,7 @@ int main(int argc, char* argv[])
   double end_time = sg4::Engine::get_clock();
   generateStats(e, end_time-start_time);
   XBT_INFO("Simulation is over");
-  
+  xbt_log_control_set("host_energy.threshold:warning");
 
   return 0;
 }

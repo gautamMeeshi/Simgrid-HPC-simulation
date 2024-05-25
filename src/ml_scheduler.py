@@ -8,6 +8,8 @@ import threading
 SCHEDULER_TYPE = None
 TRAINER_THREAD = threading.Thread()
 TRAIN_NN = False
+RUN_LOG = open('output/run_log.csv', 'w+')
+RUN_LOG.write("input,output\n")
 Xs = []
 Ys = []
 
@@ -128,7 +130,7 @@ def fcfsBackfillScheduler(json_data):
         if (runnable_jobs[i][2] <= num_free_nodes):
             # output += str(runnable_jobs[i][0])+','
             output += '1'
-            print('RUNNING ', runnable_jobs[i][0])
+            print('PYTHON INFO: RUNNING ', runnable_jobs[i][0])
             num_free_nodes -= runnable_jobs[i][2]
         else:
             output += '0'
@@ -144,20 +146,37 @@ model.compile(optimizer='adam', loss='mse')
 model.summary()
 try:
     model.load_weights("./utils/model.weights.h5")
-    print("Model weights found, loading...")
+    print("PYTHON INFO: Model weights found, loading...")
 except Exception as e:
     print(e)
 
 def train(X, Y):
     global model
     global TRAIN_NN
-    print('training with', Y.shape[0], 'data points')
+    print('PYTHON INFO: training with', Y.shape[0], 'data points')
     model.fit(X, Y, epochs=10, batch_size=32, verbose=0)
     model.save_weights("utils/model.weights.h5")
 
+def writeRunLog(free_nodes, inp, out):
+    '''
+    free_nodes - string denoting the free nodes
+    inp - job data
+    out - bit string denoting the jobs to be run (64 in len)
+    '''
+    global RUN_LOG
+    X = list(map(int, free_nodes))
+    X.extend(inp)
+    RUN_LOG.write(str(X)+',')
+    Y = list(map(int, out))
+    Y.extend([0]*(64-len(Y)))
+    RUN_LOG.write(str(Y)+'\n')
+    return
+        
+
 def neural_network_scheduler(json_data):
     global model
-    output = 'run'
+    global RUN_LOG
+    num_free_nodes = json_data['free_nodes'].count('1')
     X = []
     for i in json_data['free_nodes']:
         if i == '1':
@@ -168,17 +187,24 @@ def neural_network_scheduler(json_data):
     for i in range(64):
         if i < len(job_list):
             X.append(job_list[i][2]/150)
-            X.append(job_list[i][5]/700*10**7)
+            X.append(job_list[i][5]/(700*10**11))
         else:
             X.append(0)
             X.append(0)
     X = np.array([X])
-    Y = model.predict(X, verbose = 0)
-    for i in range(len(job_list)):
-        if (i<64 and Y[0][i] > 0.5):
-            output += '1'
-        else:
-            output += '0'
+    Y = model.predict(X, verbose = None)
+    output = ['0']*len(job_list)
+    for i in range(0, min(64, len(job_list))):
+        if (job_list[i][2] <= num_free_nodes and Y[0][i] > 0.5):
+            output[i] = '1'
+            num_free_nodes -= job_list[i][2]
+    for i in range(0, len(job_list)):
+        if (job_list[i][2] <= num_free_nodes and output[i] == '0'):
+            output[i] = '1'
+            num_free_nodes -= job_list[i][2]
+    output = ''.join(output)
+    writeRunLog(json_data['free_nodes'], list(X[0]), output)
+    output = 'run' + output
     return output
 
 INPUT = []
@@ -210,7 +236,7 @@ def learning_neural_network(json_data):
     for i in range(64):
         if i < len(job_list):
             Xs[-1].append(job_list[i][2]/150)
-            Xs[-1].append(job_list[i][5]/700*10**7)
+            Xs[-1].append(job_list[i][5]/(700*10**11))
         else:
             Xs[-1].append(0)
             Xs[-1].append(0)
@@ -270,7 +296,7 @@ def qnn(json_data, alpha = 0.1):
             X.append(0)
     if (random.random() < alpha):
         # take random step
-        print("INFO: taking random step")
+        print("PYTHON INFO: taking random step")
         INPUT.append(X)
         for i in range(len(job_list)):
             output += str(random.randint(0,1))
@@ -300,23 +326,22 @@ try:
     skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 except Exception as e:
     print(e)
-    print('socket creation failed')
+    print('PYTHON ERR: socket creation failed')
 skt.bind((ADDR, PORT))
 skt.listen(5)
-print("socket is listening")
+print("PYTHON INFO: socket is listening")
 
 clientSocket, addr = skt.accept()
 
 while True:
-    # try:
     req = clientSocket.recv(2**10*10).decode()
     json_data = json.loads(req)
     if json_data['state'] == 'off':
-        print("INFO: sensing remote off, stop listening")
+        print("PYTHON INFO: sensing remote off, stop listening")
         break
     if SCHEDULER_TYPE == None:
         SCHEDULER_TYPE = json_data['scheduler_type']
-        print("INFO: SCHEDULER TYPE ", SCHEDULER_TYPE)
+        print("PYTHON INFO: SCHEDULER TYPE ", SCHEDULER_TYPE)
     else:
         if (SCHEDULER_TYPE == "remote_heuristic"):
             res = heuristic_scheduler(json_data)
@@ -329,24 +354,14 @@ while True:
         elif (SCHEDULER_TYPE == "remote_qnn"):
             res = qnn(json_data)
         else:
-            print(f"ERROR: UNKNOWN SCHEDULER TYPE {SCHEDULER_TYPE}")
+            print(f"PYTHON ERR: UNKNOWN SCHEDULER TYPE {SCHEDULER_TYPE}")
             break
         if res:
             clientSocket.send(res.encode())
         else:
             break
-    # except Exception as e:
-    #     print(e)
-    #     break
 
-if INPUT and OUTPUT:
-    # store the input, output mapping
-    assert(len(INPUT) == len(OUTPUT))
-    f = open('run_data.txt', 'w+')
-    f.write('input,output\n')
-    for i in range(len(INPUT)):
-        f.write(f"{INPUT[i]},{OUTPUT[i]}\n")
-    f.close()
 
-print("INFO: Closing socket")
+print("PYTHON INFO: Closing socket")
 clientSocket.close()
+RUN_LOG.close()
