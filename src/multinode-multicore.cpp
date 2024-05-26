@@ -89,7 +89,7 @@ public:
           if (jobs[c_job_id]->nodes == 0) {
             jobs[c_job_id]->job_state = COMPLETED;
             for (int i=0; i < job_logs[c_job_id].nodes_running.size(); i++) {
-              node_2_job[i] = -1;
+              node_2_job[job_logs[c_job_id].nodes_running[i]] = -1;
             }
             XBT_INFO("Completed job %i", c_job_id);
             completed_jobs++;
@@ -101,6 +101,7 @@ public:
     }
     for (int i=0; i < SlurmDs.size(); i++) {
       if (resrcs[i].node_state == FREE && node_2_job[i] != -1) {
+        // Although this node got FREE other nodes are running the job with the same job id
         resrcs[i].node_state == BUSY;
       }
     }
@@ -238,7 +239,7 @@ public:
                  "Scheduler output size not same as the number of SlurmDs");
       std::set<int> jobs_scheduled; 
       for (int i=0; i<SlurmDs.size(); i++) {
-        /*if (scheduled_jobs[i]->sig != RUN && !nodes[i]->is_on()) {
+        if (scheduled_jobs[i]->sig != RUN && !nodes[i]->is_on()) {
           continue;
         }
         if (scheduled_jobs[i]->sig == IDLE && node_2_job[i] == -1) {
@@ -250,7 +251,7 @@ public:
         } else if (scheduled_jobs[i]->sig == RUN && nodes[i]->is_on() == false) {
           nodes[i]->turn_on();
           SlurmDs[i]->get<SlurmdMsg>(); // to prevent deadlock, has no semantic meaning
-        }*/
+        }
         SlurmDs[i]->put(scheduled_jobs[i], communicate_cost);
         if (scheduled_jobs[i]->sig == RUN) {
           for (int j=0; j < scheduled_jobs[i]->jobs.size(); j++) {
@@ -269,6 +270,7 @@ public:
         resrcs[i].free_cpus = 0;
       }
       sg4::this_actor::sleep_for(3);
+      recordEnergyStats();
     }
     // All jobs have completed
     // Send terminate signal to all the SlurmDs
@@ -284,10 +286,12 @@ public:
       }
       sg4::this_actor::sleep_for(9);
     }
+    for (int i=0; i < nodes.size(); i++) {
+      nodes[i]->turn_on();
+    }
     // send termination request
     receiveSlurmdMsgs();
     for (int i=0; i < SlurmDs.size(); i++) {
-      nodes[i]->turn_on();
       SlurmDs[i]->put(new SlurmCtldMsg(STOP), communicate_cost);
     }
     // clean up the jobs

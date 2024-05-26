@@ -4,7 +4,7 @@
   <!-- SlurmCtlD -->
   <actor host="node-2.2.3.c0" function="slurmctld">
     <argument value="./input/jobs/jobs2.csv"/><!--job_file-->
-    <argument value="fcfs_backfill"/><!--scheduler_type-->
+    <argument value="remote_neural_network"/><!--scheduler_type-->
     <argument value="node-0.0.0.c0"/>
     <argument value="node-0.0.1.c0"/>
     <argument value="node-0.0.2.c0"/>
