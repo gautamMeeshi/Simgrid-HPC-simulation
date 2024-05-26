@@ -12,6 +12,9 @@ RUN_LOG = open('output/run_log.csv', 'w+')
 RUN_LOG.write("input,output\n")
 Xs = []
 Ys = []
+SEED = random.randint(0,1000)
+print('RANDOM SEED ', SEED)
+random.seed(SEED)
 
 def parseJobsJson(jobs_json):
     '''
@@ -167,7 +170,7 @@ def writeRunLog(free_nodes, inp, out):
     X = list(map(int, free_nodes))
     X.extend(inp)
     RUN_LOG.write(str(X)+',')
-    Y = list(map(int, out))
+    Y = list(map(int, out[:64]))
     Y.extend([0]*(64-len(Y)))
     RUN_LOG.write(str(Y)+'\n')
     return
@@ -207,7 +210,6 @@ def neural_network_scheduler(json_data):
     output = 'run' + output
     return output
 
-INPUT = []
 OUTPUT = []
 
 def learning_neural_network(json_data):
@@ -236,7 +238,7 @@ def learning_neural_network(json_data):
     for i in range(64):
         if i < len(job_list):
             Xs[-1].append(job_list[i][2]/150)
-            Xs[-1].append(job_list[i][5]/(700*10**11))
+            Xs[-1].append(job_list[i][5]/(700*10**12))
         else:
             Xs[-1].append(0)
             Xs[-1].append(0)
@@ -277,8 +279,7 @@ def qnn(json_data, alpha = 0.1):
     select the ones that decrease the energy utilization, train on them
     '''
     global model
-    global INPUT
-    global OUTPUT
+    num_free_nodes = json_data['free_nodes'].count('1')
     output = ''
     X = []
     for i in json_data['free_nodes']:
@@ -290,33 +291,31 @@ def qnn(json_data, alpha = 0.1):
     for i in range(64):
         if i < len(job_list):
             X.append(job_list[i][2]/150)
-            X.append(job_list[i][5]/700*10**7)
+            X.append(job_list[i][5]/(700*10**12))
         else:
             X.append(0)
             X.append(0)
+    X = np.array([X])
     if (random.random() < alpha):
         # take random step
         print("PYTHON INFO: taking random step")
-        INPUT.append(X)
         for i in range(len(job_list)):
             output += str(random.randint(0,1))
-        Y = []
-        for i in range(64):
-            if i < len(job_list):
-                Y.append(int(output[i]))
-            else:
-                Y.append(0)
-        OUTPUT.append(Y)
     else:
         # generate neural network output
-        X = np.array([X])
-        Y = model.predict(X)
-        for i in range(len(job_list)):
-            if (Y[0][i] > 0.5):
-                output += '1'
-            else:
-                output += '0'
-    return ('run'+output)
+        Y = model.predict(X, verbose=None)
+        output = ['0']*len(job_list)
+        for i in range(0, min(64, len(job_list))):
+            if (job_list[i][2] <= num_free_nodes and Y[0][i] > 0.5):
+                output[i] = '1'
+                num_free_nodes -= job_list[i][2]
+        for i in range(0, len(job_list)):
+            if (job_list[i][2] <= num_free_nodes and output[i] == '0'):
+                output[i] = '1'
+                num_free_nodes -= job_list[i][2]
+        output = ''.join(output)
+    writeRunLog(json_data['free_nodes'], list(X[0]), output)
+    return ('run' + output)
 
 PORT = 8080
 ADDR = "127.0.0.1"
