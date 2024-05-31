@@ -1,0 +1,32 @@
+NOTE: the execution path should be root dir
+
+1) Generate jobs, move the job file to the input/jobs/ dir - DONE
+    python3 job_creator.py
+    mv utils/jobs_created.csv input/jobs/jobs{counter}.csv
+
+2) Run both fcfs_backfill and remote_qnn scheduling algorithms, - DONE
+   note the energy consumption
+    make run SCHED=fcfs_backfill JOB_FILE=jobs{counter}.csv
+    
+    Read the total energy consumption, time taken
+    
+    make run SCHED=remote_qnn JOB_FILE=jobs{counter}.csv
+    
+    Read the total energy consumption, time taken
+
+    If the EDP of the qnn is better then copy the jobs{counter}.csv and run_log{counter}.csv to improvements
+    
+    cp input/jobs/input.csv improvements/
+    cp output/run_log.csv improvements/run_log{counter}.csv
+
+3) Train the neural network on each of the improvements pair
+
+
+
+finally run 100 random jobs compare the result
+
+Required files
+    1) File to generate 100 job files
+    2) File to run the job files and store the difference
+    3) File to train the neural network on the logs present in improvements folder
+    

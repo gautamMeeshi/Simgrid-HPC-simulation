@@ -433,7 +433,7 @@ void generateStats(sg4::Engine &e, double exec_time) {
   stats_file << "total_energy_consumption,"<<total_energy_consumption<<"J"<<'\n';
   stats_file << "total_execution_time,"<<exec_time<<"s"<<'\n';
   XBT_INFO("Total energy consumed by CPUs = %lfJ", total_energy_consumption);
-  XBT_INFO("Total exection time %lfs", exec_time);
+  XBT_INFO("Total execution time = %lfs", exec_time);
   stats_file.close();
 }
 

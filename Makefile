@@ -6,4 +6,7 @@ compile:
 	chmod +x ./scripts/run.sh
 
 run:
-	./scripts/run.sh ${SCHED} ${JOB_FILE} 
+	./scripts/run.sh ${SCHED} ${JOB_FILE}
+
+extract_improvements:
+	python3 ./scripts/extract_improvements.py
