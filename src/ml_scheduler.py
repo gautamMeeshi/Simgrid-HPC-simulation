@@ -160,16 +160,14 @@ def train(X, Y):
     model.fit(X, Y, epochs=10, batch_size=32, verbose=0)
     model.save_weights("utils/model.weights.h5")
 
-def writeRunLog(free_nodes, inp, out):
+def writeRunLog(inp, out):
     '''
     free_nodes - string denoting the free nodes
     inp - job data
     out - bit string denoting the jobs to be run (64 in len)
     '''
     global RUN_LOG
-    X = list(map(int, free_nodes))
-    X.extend(inp)
-    RUN_LOG.write(str(X)+',')
+    RUN_LOG.write(str(inp)+',')
     Y = list(map(int, out[:64]))
     Y.extend([0]*(64-len(Y)))
     RUN_LOG.write(str(Y)+'\n')
@@ -206,7 +204,7 @@ def neural_network_scheduler(json_data):
             output[i] = '1'
             num_free_nodes -= job_list[i][2]
     output = ''.join(output)
-    writeRunLog(json_data['free_nodes'], list(X[0]), output)
+    writeRunLog(list(X[0]), output)
     output = 'run' + output
     return output
 
@@ -314,7 +312,7 @@ def qnn(json_data, alpha = 0.1):
                 output[i] = '1'
                 num_free_nodes -= job_list[i][2]
         output = ''.join(output)
-    writeRunLog(json_data['free_nodes'], list(X[0]), output)
+    writeRunLog(list(X[0]), output)
     return ('run' + output)
 
 PORT = 8080

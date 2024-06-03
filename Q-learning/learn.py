@@ -1,0 +1,45 @@
+import numpy as np
+import tensorflow as tf
+import os
+
+def loadTrainingData(filepath):
+    file = open(filepath, 'r')
+    header = True
+    X,Y = [],[]
+    for line in file:
+        if header:
+            header = False
+            continue
+        line = line.split('],[')
+        X.append(list(map(float, line[0][1:].split(','))))
+        try:
+            Y.append(list(map(float, line[1][:-2].split(','))))
+        except:
+            print(line[1])
+            raise Exception
+    X = np.array(X)
+    Y = np.array(Y)
+    return X,Y
+
+# Create a sequential model
+model = tf.keras.Sequential([
+    tf.keras.layers.Dense(128, activation='relu', input_shape=(278,)),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dense(64, activation='sigmoid')  # No activation function for final layer for regression
+])
+
+# Compile the model
+model.compile(optimizer='adam', loss='mse')
+
+# Print model summary
+model.summary()
+model.load_weights("./utils/model.weights.h5")
+print("Model weights found, training...")
+
+# Read the files in improvement/ dir and add
+for file in os.listdir('./improvements'):
+    print(f'training on ./improvements/{file}')
+    X,Y = loadTrainingData('./improvements/'+file)
+    model.fit(X, Y, epochs=10, batch_size=32, verbose=2)
+
+model.save_weights("qmodel.weights.h5")
