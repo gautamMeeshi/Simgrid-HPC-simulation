@@ -4,6 +4,7 @@ compile_debug:
 compile:
 	g++ src/multinode-multicore.cpp src/helper.hpp src/scheduler.hpp src/objects.hpp -o exec -lsimgrid
 	chmod +x ./scripts/run.sh
+	mkdir output
 
 run:
 	./scripts/run.sh ${SCHED} ${JOB_FILE}

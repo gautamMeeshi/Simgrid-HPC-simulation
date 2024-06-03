@@ -16,9 +16,9 @@ Pre-requisites to run the model.
     ```
  How to run the model?
    1. Compile the source files - `make compile`
-   2. Run the model - `make run`
+   2. Run the model - `make run SCHED=<scheduler_type> JOB_FILE=<job_file_name>`
+      scheduler_type = fcfs_backfill/fcfs/remote_neural_network/remote_qnn/remote_fcfs_bf
 
 Important links for reference - 
   1. [SimGrid host energy consumption plugin](https://simgrid.org/doc/latest/Plugins.html#plugin-host-energy).
   2. This model is inspired by [SimGrid-master-worker](https://simgrid.org/doc/latest/Tutorial_Algorithms.html#discover-the-master-workers) example.
-  3. 
