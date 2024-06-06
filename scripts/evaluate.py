@@ -21,28 +21,29 @@ def extractStats(stdout):
     res.runtime = float(temp[0].split()[-1][:-1])
     res.edp = res.runtime*res.energy
     return res
-
+log_file = open('log', 'a')
 def run100():
-    for i in range(5,10):
+    global log_file
+    for i in range(1,20):
         try:
             print('-'*10, f'Running jobs{i}.csv','-'*10)
             print(f'Running fcfs_bf')
-            result = subprocess.run(['make', 'run', 'SCHED=remote_fcfs_bf', f'JOB_FILE=jobs{i}.csv'],
+            log_file.write(f'job{i}')
+            result = subprocess.run(['make', 'run', 'SCHED=fcfs_backfill', f'JOB_FILE=jobs{i}.csv'],
                                     check=True, capture_output=True, text=True)
-            subprocess.run(['mv', 'output/run_log.csv', f'./output/run_log_fcfs_bf.csv'])
             fcfs_bf_stats = extractStats(result.stderr)
             print(fcfs_bf_stats)
-            print(f'Running remote_qnn')
-            result = subprocess.run(['make', 'run', 'SCHED=remote_qnn', f'JOB_FILE=jobs{i}.csv'],
+            log_file.write(f'{fcfs_bf_stats.energy},{fcfs_bf_stats.runtime},{fcfs_bf_stats.edp},')
+            print(f'Running remote_nn')
+            result = subprocess.run(['make', 'run', 'SCHED=remote_neural_network', f'JOB_FILE=jobs{i}.csv'],
                                     check=True, capture_output=True, text=True)
-            rqnn_stats = extractStats(result.stderr)
-            print(rqnn_stats)
-            if (fcfs_bf_stats.edp > rqnn_stats.edp):
-                print(f'Moving the run_log.csv to ./improvements/run_log{i}.csv')
-                subprocess.run(['mv', 'output/run_log.csv', f'./improvements/run_log{i}.csv'])
-            else:
-                print(f'Moving the run_log_fcfs_bf.csv to ./improvements/run_log{i}.csv')
-                subprocess.run(['mv', 'output/run_log_fcfs_bf.csv', f'./improvements/run_log{i}.csv'])
+            nn_stats = extractStats(result.stderr)
+            print(nn_stats)
+            log_file.write(f'{nn_stats.energy},{nn_stats.runtime},{nn_stats.edp},')
+            energy_improvement = (fcfs_bf_stats.energy-nn_stats.energy)/fcfs_bf_stats.energy*100
+            runtime_improvement = (fcfs_bf_stats.runtime-nn_stats.runtime)/fcfs_bf_stats.runtime*100
+            edp_improvement = (fcfs_bf_stats.edp-nn_stats.edp)/fcfs_bf_stats.edp*100
+            log_file.write(f'''{energy_improvement},{runtime_improvement},{edp_improvement}\n''')
         except subprocess.CalledProcessError as e:
             print(f"Command {e.cmd} failed with return code:", e.returncode)
             print("Error output:", e.stderr)

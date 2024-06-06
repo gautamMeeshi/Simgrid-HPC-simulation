@@ -279,7 +279,7 @@ public:
         std::vector<SlurmCtldMsg*> res;
         int total_free_nodes = 0;
         int nodes_distributed_on = 0;
-        if (counter == 10000) {
+        if (counter == 5000) {
             train = true;
             counter = 0;
             std::cout<<"TRAIN = TRUE\n";
