@@ -35,7 +35,7 @@ private:
     int counter;
     bool train = false;
 public:
-    Scheduler(std::string scheduler_type) {
+    Scheduler(std::string scheduler_type, std::map<int, Job*> &jobs) {
         type = scheduler_type;
         counter = 0;
         if (type.substr(0,6) == "remote") {
@@ -53,6 +53,7 @@ public:
             pt::ptree root;
             root.put("state", "on");
             root.put("scheduler_type", type);
+            root.put("jobs", convertJobs2Str(jobs));
             std::ostringstream oss;
             pt::write_json(oss, root);
             std::string json_string = oss.str();

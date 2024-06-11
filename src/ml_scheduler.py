@@ -4,6 +4,7 @@ import tensorflow as tf
 import numpy as np
 import random
 import threading
+import helper
 
 SCHEDULER_TYPE = None
 TRAINER_THREAD = threading.Thread()
@@ -21,6 +22,8 @@ skt = None
 SEED = random.randint(0,1000)
 print('RANDOM SEED ', SEED)
 random.seed(SEED)
+JOB_2_NN_DICT = {}
+model2 = None
 
 def LoadModel():
     global model
@@ -33,10 +36,20 @@ def LoadModel():
     model.compile(optimizer='adam', loss='mse')
     model.summary()
     try:
-        model.load_weights("./utils/model.weights.h5")
+        model.load_weights("qmodel.weights.h5")
         print("PYTHON INFO: Model weights found, loading...")
     except Exception as e:
         print(e)
+    return
+
+def LoadModel2():
+    global model
+    model = tf.keras.Sequential([
+        tf.keras.layers.Dense(128, activation='relu', input_shape=(342,)),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(64, activation='sigmoid')  # No activation function for final layer for regression
+    ])
+    model.compile(optimizer='adam', loss='mse')
     return
 
 def writeRunLog(inp, out):
@@ -52,7 +65,34 @@ def writeRunLog(inp, out):
     RUN_LOG.write(str(Y)+'\n')
     return
 
-def GetNNInput(free_nodes_str, jobs_list):
+def GetNNOutput(num_free_nodes, jobs_list, X):
+    global model
+    Y = model.predict(X, verbose = None)
+    output = ['0']*len(jobs_list)
+    for i in range(0, min(64, len(jobs_list))):
+        if (jobs_list[i][2] <= num_free_nodes and Y[0][i] > 0.5):
+            output[i] = '1'
+            num_free_nodes -= jobs_list[i][2]
+    for i in range(0, len(jobs_list)):
+        if (jobs_list[i][2] <= num_free_nodes and output[i] == '0'):
+            output[i] = '1'
+            num_free_nodes -= jobs_list[i][2]
+    output = ''.join(output)
+    return output
+
+def ConstructNNInput(jobs_list):
+    global JOB_2_NN_DICT
+    jobs_list = json.loads(jobs_list)
+    dependent_jobs = helper.FindDependentJobs(jobs_list)
+    cumulative_comp = helper.FindCumulativeComp(jobs_list, dependent_jobs)
+    for i in range(0,len(jobs_list)):
+        JOB_2_NN_DICT[jobs_list[i][0]] = (jobs_list[i][2]/NUM_NODES,
+                                          (jobs_list[i][5]*jobs_list[i][2]*jobs_list[i][3]*jobs_list[i][4])/MAX_COMPUTATION,
+                                          cumulative_comp[jobs_list[i][0]])
+    return
+
+def GetNN2Input(free_nodes_str, jobs_list):
+    global JOB_2_NN_DICT
     X = []
     for i in free_nodes_str:
         if i == '1':
@@ -61,17 +101,15 @@ def GetNNInput(free_nodes_str, jobs_list):
             X.append(0)
     for i in range(64):
         if i < len(jobs_list):
-            X.append(jobs_list[i][2]/NUM_NODES)
-            X.append((jobs_list[i][5]*jobs_list[i][2]*jobs_list[i][3]*jobs_list[i][4])/MAX_COMPUTATION)
+            X.extend(JOB_2_NN_DICT[jobs_list[i][0]])
         else:
-            X.append(0)
-            X.append(0)
+            X.extend((0,0,0))
     X = np.array([X])
     return X
 
-def GetNNOutput(num_free_nodes, jobs_list, X):
-    global model
-    Y = model.predict(X, verbose = None)
+def GetNN2Output(num_free_nodes, jobs_list, X):
+    global model2
+    Y = model2.predict(X, verbose = None)
     output = ['0']*len(jobs_list)
     for i in range(0, min(64, len(jobs_list))):
         if (jobs_list[i][2] <= num_free_nodes and Y[0][i] > 0.5):
@@ -204,7 +242,7 @@ def fcfsBackfillScheduler(json_data):
             num_free_nodes -= runnable_jobs[i][2]
         else:
             output += '0'
-    writeRunLog(list(GetNNInput(json_data['free_nodes'], runnable_jobs)[0]), output)
+    writeRunLog(list(GetNN2Input(json_data['free_nodes'], runnable_jobs)[0]), output)
     return ('run' + output)
 
 def train(X, Y):
@@ -217,7 +255,7 @@ def train(X, Y):
 def neural_network_scheduler(json_data):
     num_free_nodes = json_data['free_nodes'].count('1')
     job_list = json.loads(json_data['jobs'])
-    X = GetNNInput(json_data['free_nodes'], job_list)
+    X = helper.GetNNInput(json_data['free_nodes'], job_list)
     output = GetNNOutput(num_free_nodes, job_list, X)
     writeRunLog(list(X[0]), output)
     return ('run' + output)
@@ -290,7 +328,7 @@ def qnn(json_data, alpha = 0.1):
     '''
     num_free_nodes = json_data['free_nodes'].count('1')
     job_list = json.loads(json_data['jobs'])
-    X = GetNNInput(json_data['free_nodes'], job_list)
+    X = helper.GetNNInput(json_data['free_nodes'], job_list)
     output = ''
     if (random.random() < alpha):
         # take random step
@@ -323,6 +361,7 @@ while True:
     if SCHEDULER_TYPE == None:
         SCHEDULER_TYPE = json_data['scheduler_type']
         print("PYTHON INFO: SCHEDULER TYPE ", SCHEDULER_TYPE)
+        ConstructNNInput(json_data['jobs'])
         if (SCHEDULER_TYPE == 'remote_learn_neural_network' or \
             SCHEDULER_TYPE == 'remote_neural_network' or \
             SCHEDULER_TYPE == 'remote_qnn'):

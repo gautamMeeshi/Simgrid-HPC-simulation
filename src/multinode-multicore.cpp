@@ -53,10 +53,10 @@ public:
     
     job_file_name = args[1];
     scheduler_type = args[2];
-    scheduler = new Scheduler(scheduler_type);
     my_name = sg4::this_actor::get_host()->get_name();
     mymailbox = sg4::Mailbox::by_name(my_name);
     jobs = parseJobFile(job_file_name);
+    scheduler = new Scheduler(scheduler_type, jobs);
 
     for (unsigned int i = 3; i < args.size(); i++) {
       SlurmDs.push_back(sg4::Mailbox::by_name(args[i]));

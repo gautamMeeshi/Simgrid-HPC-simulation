@@ -21,14 +21,15 @@ def extractStats(stdout):
     res.runtime = float(temp[0].split()[-1][:-1])
     res.edp = res.runtime*res.energy
     return res
-log_file = open('log', 'a')
+log_file = open('log.csv', 'a')
+log_file.write('job_name,E_fcfs_bf,T_fcfs_bf,EDP_fcfs_bf,E_nn,T_nn,EDP_nn,E_imp,T_imp,EDP_imp\n')
 def run100():
     global log_file
-    for i in range(1,20):
+    for i in range(51,61):
         try:
             print('-'*10, f'Running jobs{i}.csv','-'*10)
             print(f'Running fcfs_bf')
-            log_file.write(f'job{i}')
+            log_file.write(f'job{i},')
             result = subprocess.run(['make', 'run', 'SCHED=fcfs_backfill', f'JOB_FILE=jobs{i}.csv'],
                                     check=True, capture_output=True, text=True)
             fcfs_bf_stats = extractStats(result.stderr)
