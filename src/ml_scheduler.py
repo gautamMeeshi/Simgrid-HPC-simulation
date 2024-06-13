@@ -43,13 +43,19 @@ def LoadModel():
     return
 
 def LoadModel2():
-    global model
-    model = tf.keras.Sequential([
+    global model2
+    model2 = tf.keras.Sequential([
         tf.keras.layers.Dense(128, activation='relu', input_shape=(342,)),
         tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dense(64, activation='sigmoid')  # No activation function for final layer for regression
     ])
-    model.compile(optimizer='adam', loss='mse')
+    model2.compile(optimizer='adam', loss='mse')
+    model2.summary()
+    try:
+        model2.load_weights("./models/model2.weights.h5")
+        print("PYTHON INFO: Model weights found, loading...")
+    except Exception as e:
+        print(e)
     return
 
 def writeRunLog(inp, out):
@@ -66,8 +72,8 @@ def writeRunLog(inp, out):
     return
 
 def GetNNOutput(num_free_nodes, jobs_list, X):
-    global model
-    Y = model.predict(X, verbose = None)
+    global model2
+    Y = model2.predict(X, verbose = None)
     output = ['0']*len(jobs_list)
     for i in range(0, min(64, len(jobs_list))):
         if (jobs_list[i][2] <= num_free_nodes and Y[0][i] > 0.5):
@@ -255,7 +261,7 @@ def train(X, Y):
 def neural_network_scheduler(json_data):
     num_free_nodes = json_data['free_nodes'].count('1')
     job_list = json.loads(json_data['jobs'])
-    X = helper.GetNNInput(json_data['free_nodes'], job_list)
+    X = GetNN2Input(json_data['free_nodes'], job_list)
     output = GetNNOutput(num_free_nodes, job_list, X)
     writeRunLog(list(X[0]), output)
     return ('run' + output)
@@ -328,7 +334,7 @@ def qnn(json_data, alpha = 0.1):
     '''
     num_free_nodes = json_data['free_nodes'].count('1')
     job_list = json.loads(json_data['jobs'])
-    X = helper.GetNNInput(json_data['free_nodes'], job_list)
+    X = GetNN2Input(json_data['free_nodes'], job_list)
     output = ''
     if (random.random() < alpha):
         # take random step
@@ -365,7 +371,7 @@ while True:
         if (SCHEDULER_TYPE == 'remote_learn_neural_network' or \
             SCHEDULER_TYPE == 'remote_neural_network' or \
             SCHEDULER_TYPE == 'remote_qnn'):
-            LoadModel()
+            LoadModel2()
     else:
         if (SCHEDULER_TYPE == "remote_heuristic"):
             res = heuristic_scheduler(json_data)

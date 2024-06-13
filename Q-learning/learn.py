@@ -23,7 +23,7 @@ def loadTrainingData(filepath):
 
 # Create a sequential model
 model = tf.keras.Sequential([
-    tf.keras.layers.Dense(128, activation='relu', input_shape=(278,)),
+    tf.keras.layers.Dense(128, activation='relu', input_shape=(342,)),
     tf.keras.layers.Dense(64, activation='relu'),
     tf.keras.layers.Dense(64, activation='sigmoid')  # No activation function for final layer for regression
 ])
@@ -33,8 +33,8 @@ model.compile(optimizer='adam', loss='mse')
 
 # Print model summary
 model.summary()
-model.load_weights("./utils/model.weights.h5")
-print("Model weights found, training...")
+# model.load_weights("./utils/model.weights.h5")
+# print("Model weights found, training...")
 
 # Read the files in improvement/ dir and add
 for file in os.listdir('./improvements'):
@@ -42,4 +42,4 @@ for file in os.listdir('./improvements'):
     X,Y = loadTrainingData('./improvements/'+file)
     model.fit(X, Y, epochs=10, batch_size=32, verbose=2)
 
-model.save_weights("qmodel.weights.h5")
+model.save_weights("./models/model2.weights.h5")

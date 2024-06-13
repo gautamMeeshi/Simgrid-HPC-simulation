@@ -31,5 +31,5 @@ def CreateJobFile(file_path):
         if (i<num_jobs-1):
             file.write('\n')
 
-for i in range(1,101):
+for i in range(0,100):
     CreateJobFile(f'../input/jobs/jobs{i+1}.csv')
