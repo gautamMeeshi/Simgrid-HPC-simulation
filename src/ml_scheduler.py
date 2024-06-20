@@ -52,7 +52,7 @@ def LoadModel2():
     model2.compile(optimizer='adam', loss='mse')
     model2.summary()
     try:
-        model2.load_weights("./models/model2.weights.h5")
+        model2.load_weights("./models/qmodel2.1.weights.h5")
         print("PYTHON INFO: Model weights found, loading...")
     except Exception as e:
         print(e)
@@ -191,7 +191,7 @@ def calculateJobPriorityScores(jobs):
         Pf[jid] = 0.5*Ps + 0.4*Pc + 0.1*Pn # weighted sum of the factors
         for pid in jobs[jid][5]:
             dependent[pid].append(jid)
-    for jid in jobs: # jobs having more dependent jobs 
+    for jid in jobs: # jobs having more dependent jobs
         if (jobs[jid][1] == 2):
             continue
         for cid in dependent[jid]:

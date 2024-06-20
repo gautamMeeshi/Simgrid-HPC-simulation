@@ -25,7 +25,7 @@ log_file = open('log.csv', 'a')
 log_file.write('job_name,E_fcfs_bf,T_fcfs_bf,EDP_fcfs_bf,E_nn,T_nn,EDP_nn,E_imp,T_imp,EDP_imp\n')
 def run100():
     global log_file
-    for i in range(51,61):
+    for i in range(1,21):
         try:
             print('-'*10, f'Running jobs{i}.csv','-'*10)
             print(f'Running fcfs_bf')
@@ -34,12 +34,20 @@ def run100():
                                     check=True, capture_output=True, text=True)
             fcfs_bf_stats = extractStats(result.stderr)
             print(fcfs_bf_stats)
-            log_file.write(f'{fcfs_bf_stats.energy},{fcfs_bf_stats.runtime},{fcfs_bf_stats.edp},')
-            print(f'Running remote_nn')
-            result = subprocess.run(['make', 'run', 'SCHED=remote_neural_network', f'JOB_FILE=jobs{i}.csv'],
-                                    check=True, capture_output=True, text=True)
-            nn_stats = extractStats(result.stderr)
+            print('-'*10, f'Running remote_nn','-'*10)
+            attempts = 8
+            nn_stats = None
+            while attempts>0:
+                try:
+                    result = subprocess.run(['make', 'run', 'SCHED=remote_neural_network', f'JOB_FILE=jobs{i}.csv'],
+                                            check=True, capture_output=True, text=True)
+                    nn_stats = extractStats(result.stderr)
+                except:
+                    attempts -=1
+            if nn_stats == None:
+                continue
             print(nn_stats)
+            log_file.write(f'{fcfs_bf_stats.energy},{fcfs_bf_stats.runtime},{fcfs_bf_stats.edp},')
             log_file.write(f'{nn_stats.energy},{nn_stats.runtime},{nn_stats.edp},')
             energy_improvement = (fcfs_bf_stats.energy-nn_stats.energy)/fcfs_bf_stats.energy*100
             runtime_improvement = (fcfs_bf_stats.runtime-nn_stats.runtime)/fcfs_bf_stats.runtime*100
