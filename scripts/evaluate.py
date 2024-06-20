@@ -21,10 +21,14 @@ def extractStats(stdout):
     res.runtime = float(temp[0].split()[-1][:-1])
     res.edp = res.runtime*res.energy
     return res
-log_file = open('log.csv', 'a')
-log_file.write('job_name,E_fcfs_bf,T_fcfs_bf,EDP_fcfs_bf,E_nn,T_nn,EDP_nn,E_imp,T_imp,EDP_imp\n')
+
 def run100():
-    global log_file
+    log_file = open('log.csv', 'a')
+    log_file.write('job_name,E_fcfs_bf,T_fcfs_bf,EDP_fcfs_bf,E_nn,T_nn,EDP_nn,E_imp,T_imp,EDP_imp\n')
+    total_jobs_run = 0
+    njobs_with_edp_improvement = 0
+    njobs_with_E_improvement = 0
+    njobs_with_T_improvement = 0
     for i in range(1,21):
         try:
             print('-'*10, f'Running jobs{i}.csv','-'*10)
@@ -46,16 +50,27 @@ def run100():
                     attempts -=1
             if nn_stats == None:
                 continue
+            total_jobs_run +=1
             print(nn_stats)
             log_file.write(f'{fcfs_bf_stats.energy},{fcfs_bf_stats.runtime},{fcfs_bf_stats.edp},')
             log_file.write(f'{nn_stats.energy},{nn_stats.runtime},{nn_stats.edp},')
             energy_improvement = (fcfs_bf_stats.energy-nn_stats.energy)/fcfs_bf_stats.energy*100
             runtime_improvement = (fcfs_bf_stats.runtime-nn_stats.runtime)/fcfs_bf_stats.runtime*100
             edp_improvement = (fcfs_bf_stats.edp-nn_stats.edp)/fcfs_bf_stats.edp*100
+            if energy_improvement > 0:
+                njobs_with_E_improvement += 1
+            if runtime_improvement > 0:
+                njobs_with_T_improvement += 1
+            if edp_improvement > 0:
+                njobs_with_edp_improvement += 1
             log_file.write(f'''{energy_improvement},{runtime_improvement},{edp_improvement}\n''')
         except subprocess.CalledProcessError as e:
             print(f"Command {e.cmd} failed with return code:", e.returncode)
             print("Error output:", e.stderr)
-
+    log_file.write(f'Total number of jobs run sucessfully = {total_jobs_run}\n')
+    log_file.write(f'No. jobs with energy improvement = {njobs_with_E_improvement}\n')
+    log_file.write(f'No. jobs with runtime improvement = {njobs_with_T_improvement}\n')
+    log_file.write(f'No. jobs with edp improvement = {njobs_with_edp_improvement}\n')
+    log_file.close()
 if __name__ == "__main__":
     run100()
