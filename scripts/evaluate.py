@@ -1,4 +1,5 @@
 import subprocess
+import time
 
 class Stats:
     def __init__(self):
@@ -29,7 +30,7 @@ def run100():
     njobs_with_edp_improvement = 0
     njobs_with_E_improvement = 0
     njobs_with_T_improvement = 0
-    for i in range(1,21):
+    for i in range(101,201):
         try:
             print('-'*10, f'Running jobs{i}.csv','-'*10)
             print(f'Running fcfs_bf')
@@ -38,7 +39,7 @@ def run100():
                                     check=True, capture_output=True, text=True)
             fcfs_bf_stats = extractStats(result.stderr)
             print(fcfs_bf_stats)
-            print('-'*10, f'Running remote_nn','-'*10)
+            print(f'Running remote_nn')
             attempts = 8
             nn_stats = None
             while attempts>0:
@@ -46,8 +47,11 @@ def run100():
                     result = subprocess.run(['make', 'run', 'SCHED=remote_neural_network', f'JOB_FILE=jobs{i}.csv'],
                                             check=True, capture_output=True, text=True)
                     nn_stats = extractStats(result.stderr)
+                    attempts = 0
                 except:
+                    print("Remote nn failed, retrying")
                     attempts -=1
+                    time.sleep(5)
             if nn_stats == None:
                 continue
             total_jobs_run +=1

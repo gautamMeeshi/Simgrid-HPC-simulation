@@ -16,6 +16,7 @@ MAX_COMPUTATION = (700*10**12)
 Xs = []
 Ys = []
 model = None
+model2 = None
 PORT = 8080
 ADDR = "127.0.0.1"
 skt = None
@@ -23,7 +24,6 @@ SEED = random.randint(0,1000)
 print('RANDOM SEED ', SEED)
 random.seed(SEED)
 JOB_2_NN_DICT = {}
-model2 = None
 
 def LoadModel():
     global model
