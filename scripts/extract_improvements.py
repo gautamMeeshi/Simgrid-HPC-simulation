@@ -17,11 +17,12 @@ def extractStats(stdout):
     stdout = stdout.split('\n')
     temp = list(filter( lambda x: 'Total energy consumed' in x, stdout))
     assert(len(temp) == 1)
-    res.energy = float(temp[0].split()[-1][:-1])
+    res.energy = float(temp[0].split()[-1][:-2])
     # find line containing the string 'runtime'
     temp = list(filter( lambda x: 'Total execution time' in x, stdout))
     res.runtime = float(temp[0].split()[-1][:-1])
-    res.edp = res.runtime*res.energy
+    temp = list(filter( lambda x: 'EDP of the system' in x, stdout))
+    res.edp = float(temp[0].split()[-1][:-3])
     return res
 
 def run100():

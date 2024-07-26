@@ -50,7 +50,7 @@ public:
     // xbt_assert(args.size() > 4, "The master function expects 3 arguments plus the workers' names");
 
     XBT_INFO("SlurmCtlD scheduler type %s", args[2].c_str());
-    
+
     job_file_name = args[1];
     scheduler_type = args[2];
     my_name = sg4::this_actor::get_host()->get_name();
@@ -160,7 +160,7 @@ public:
     if (counter == 1000) {
       counter = 0;
       double node_energy = 0;
-      
+
       for (int i=0; i < nodes.size(); i++) {
         std::string cpu1_name = regex_replace(host_name[i], std::regex("c0"), "c1");
         node_energy = sg_host_get_consumed_energy(nodes[i]) + sg_host_get_consumed_energy(sg4::Host::by_name(cpu1_name));
@@ -240,7 +240,7 @@ public:
       std::vector<SlurmCtldMsg*> scheduled_jobs = scheduler->schedule(jobs, resrcs, jobs_remaining);
       xbt_assert(scheduled_jobs.size() == SlurmDs.size(),
                  "Scheduler output size not same as the number of SlurmDs");
-      std::set<int> jobs_scheduled; 
+      std::set<int> jobs_scheduled;
       for (int i=0; i<SlurmDs.size(); i++) {
         if (scheduled_jobs[i]->sig != RUN && !nodes[i]->is_on()) {
           continue;
@@ -268,7 +268,7 @@ public:
         XBT_INFO("Started job %i", job_id);
         job_logs[job_id].start_time = curr_time;
       }
-      
+
       for (int i=0; i<SlurmDs.size(); i++) {
         resrcs[i].free_cpus = 0;
       }
@@ -303,7 +303,7 @@ public:
     }
     // collect the logs from the slurmds
     collectStoreStats();
-    
+
     XBT_INFO("SlurmCtlD exiting");
 
   }
@@ -432,8 +432,11 @@ void generateStats(sg4::Engine &e, double exec_time) {
   }
   stats_file << "total_energy_consumption,"<<total_energy_consumption<<"J"<<'\n';
   stats_file << "total_execution_time,"<<exec_time<<"s"<<'\n';
-  XBT_INFO("Total energy consumed by CPUs = %lfJ", total_energy_consumption);
+  XBT_INFO("Total energy consumed by CPUs = %lfMJ", total_energy_consumption/1000000);
   XBT_INFO("Total execution time = %lfs", exec_time);
+  XBT_INFO("Average power consumption of the system = %lfKW", total_energy_consumption/exec_time/1000);
+  XBT_INFO("Average power consumption per CPU = %lfW", total_energy_consumption/exec_time/300);
+  XBT_INFO("EDP of the system = %lfGJs", total_energy_consumption*exec_time/1000000000);
   stats_file.close();
 }
 

@@ -368,8 +368,8 @@ while True:
         SCHEDULER_TYPE = json_data['scheduler_type']
         print("PYTHON INFO: SCHEDULER TYPE ", SCHEDULER_TYPE)
         ConstructNNInput(json_data['jobs'])
-        if (SCHEDULER_TYPE == 'remote_learn_neural_network' or \
-            SCHEDULER_TYPE == 'remote_neural_network' or \
+        if (SCHEDULER_TYPE == 'remote_learn_nn' or \
+            SCHEDULER_TYPE == 'remote_nn' or \
             SCHEDULER_TYPE == 'remote_qnn'):
             LoadModel2()
     else:
@@ -377,9 +377,9 @@ while True:
             res = heuristic_scheduler(json_data)
         elif (SCHEDULER_TYPE == "remote_fcfs_bf"):
             res = fcfsBackfillScheduler(json_data)
-        elif (SCHEDULER_TYPE == "remote_learn_neural_network"):
+        elif (SCHEDULER_TYPE == "remote_learn_nn"):
             res = learning_neural_network(json_data)
-        elif (SCHEDULER_TYPE == "remote_neural_network"):
+        elif (SCHEDULER_TYPE == "remote_nn"):
             res = neural_network_scheduler(json_data)
         elif (SCHEDULER_TYPE == "remote_qnn"):
             res = qnn(json_data)

@@ -20,7 +20,7 @@ This file needs to define the scheduler funtion
 
 Input - list of Pending Jobs, Resource list
 
-Resource list - currently the number of free cpus on each node 
+Resource list - currently the number of free cpus on each node
 Later can include many other resources
 
 Output - vector that denotes the jobs to be run on each of the SlurmDs in sequence
@@ -375,9 +375,9 @@ public:
         } else if (type == "remote_fcfs_bf" ||
                    type == "remote_heuristic") {
             res = remote_send_all_jobs(jobs, resrc, jobs_remaining);
-        } else if (type == "remote_neural_network" ||
+        } else if (type == "remote_nn" ||
                    type == "remote_qnn" ||
-                   type == "remote_learn_neural_network") {
+                   type == "remote_learn_nn") {
             res = remote_send_runnable_jobs(runnable_jobs, resrc, jobs_remaining);
         } else {
             res = fcfs_scheduler(runnable_jobs, resrc, jobs_remaining);

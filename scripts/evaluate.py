@@ -16,11 +16,12 @@ def extractStats(stdout):
     stdout = stdout.split('\n')
     temp = list(filter( lambda x: 'Total energy consumed' in x, stdout))
     assert(len(temp) == 1)
-    res.energy = float(temp[0].split()[-1][:-1])
+    res.energy = float(temp[0].split()[-1][:-2])
     # find line containing the string 'runtime'
     temp = list(filter( lambda x: 'Total execution time' in x, stdout))
     res.runtime = float(temp[0].split()[-1][:-1])
-    res.edp = res.runtime*res.energy
+    temp = list(filter( lambda x: 'EDP of the system' in x, stdout))
+    res.edp = float(temp[0].split()[-1][:-3])
     return res
 
 def run100():
@@ -44,7 +45,7 @@ def run100():
             nn_stats = None
             while attempts>0:
                 try:
-                    result = subprocess.run(['make', 'run', 'SCHED=remote_neural_network', f'JOB_FILE=jobs{i}.csv'],
+                    result = subprocess.run(['make', 'run', 'SCHED=remote_nn', f'JOB_FILE=jobs{i}.csv'],
                                             check=True, capture_output=True, text=True)
                     nn_stats = extractStats(result.stderr)
                     attempts = 0
