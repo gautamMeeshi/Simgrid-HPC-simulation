@@ -4,8 +4,6 @@
 #ifndef OBJECTS_H
 #define OBJECTS_H
 
-const int CPUS_PER_NODE = 2;
-
 enum SlurmSignal {
     RUN = 0,
     STOP = 1,
@@ -45,14 +43,20 @@ class Resource {
 public:
     SlurmdState node_state;
     int free_cpus;
+    double relinquish_time; // time when the resource will become free
+    Resource(SlurmdState ns = FREE, int fs = 2, double rt = 0) {
+        node_state = ns;
+        free_cpus = fs;
+        relinquish_time = rt;
+    }
 };
 
 class JobLogs {
 public:
-    long start_time;
-    long end_time;
+    double start_time;
+    double end_time;
     std::vector<int> nodes_running;
-    JobLogs (long st = 0, long et = 0, std::vector<int> nr = std::vector<int>()) {
+    JobLogs (double st = 0, double et = 0, std::vector<int> nr = std::vector<int>()) {
         start_time = st;
         end_time = et;
         nodes_running = nr;

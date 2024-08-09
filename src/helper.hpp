@@ -8,6 +8,9 @@
 #ifndef HELPER_H // include guard
 #define HELPER_H
 
+#define CPU_FREQUENCY 2000000000
+#define CPUS_PER_NODE 2
+#define CORES_PER_CPU 6
 
 enum JobState {
   PENDING = 0, // waiting for resources
@@ -22,10 +25,12 @@ public:
   int nodes; // number of nodes required
   int tasks_per_node; // number of tasks per node
   int cpus_per_task; // number of tasks per cpu
-  double computation_cost; // computation per core
+  double computation_cost; // computation per thread
   int priority; // higher number means higher priority
   std::vector<int> p_job_id; // jobs on which this job is dependent
-  JobState job_state;
+  JobState job_state; // state of job
+  double run_time; // scaled value of runtime used by the schedulers
+  double start_time;
   Job(int ji = 0, int n = 0, int tpn = 0, int cpt = 0,
       double cc = 0.0, int prty = 0, std::vector<int> prnt = std::vector<int>()) {
     job_id = ji;
@@ -36,6 +41,14 @@ public:
     priority = prty;
     p_job_id = prnt;
     job_state = PENDING;
+    run_time = (double)(cc*tpn*cpt)/((double)CPU_FREQUENCY);
+    int total_threads = cpt*tpn;
+    if (total_threads <= CORES_PER_CPU*CPUS_PER_NODE) {
+      run_time = run_time/(double)(total_threads);
+    } else {
+      run_time = run_time/(double)(CORES_PER_CPU*CPUS_PER_NODE);
+    }
+    start_time = -1;
   }
 
   friend std::ostream & operator << (std::ostream &os, const Job &j) {

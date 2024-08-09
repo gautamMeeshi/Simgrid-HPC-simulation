@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <algorithm>
 
 #include "helper.hpp"
 #include "objects.hpp"
@@ -105,14 +106,29 @@ public:
 
     std::vector<SlurmCtldMsg*> fcfs_backfill_scheduler(std::vector<Job*> &jobs,
                                                        std::vector<Resource> &resrc,
-                                                       long &jobs_remaining) {
+                                                       long &jobs_remaining,
+                                                       double curr_time) {
         std::vector<SlurmCtldMsg*> res;
         int total_free_nodes = 0;
+        // reservation time is the time when the nodes required for the top
+        // of the queue job will be available
+        // NOTE - reservation time does not change if shorter jobs get scheduled in free nodes
+        double reservation_time = 0;
+        std::vector<double> relinquish_times;
+        bool fcfs = true;
+
         for (int j=0; j<resrc.size(); j++) {
+            if (resrc[j].relinquish_time > curr_time) {
+                relinquish_times.push_back(resrc[j].relinquish_time);
+            }
             if (resrc[j].node_state == FREE){
                 total_free_nodes ++;
             }
             res.push_back(new SlurmCtldMsg());
+        }
+        std::sort(relinquish_times.begin(), relinquish_times.end());
+        if (jobs.size() > 0 && jobs[0]->nodes > total_free_nodes) {
+            
         }
         if (total_free_nodes == curr_free_nodes) {
             return res;
@@ -123,7 +139,7 @@ public:
         while (i < jobs.size()) {
             // find if a job can be scheduled
             int nodes_distributed_on = 0;
-            if (jobs[i]->nodes <= total_free_nodes) {
+            if (jobs[i]->nodes <= total_free_nodes && (fcfs || jobs[i]->run_time < reservation_time)) {
                 while (j<resrc.size()) { // iterate over the number of SlurmDs
                     if (resrc[j].node_state == FREE) {
                         Job *job_subset = new Job(jobs[i]->job_id, 1,
@@ -146,6 +162,12 @@ public:
                         }
                     }
                     j++;
+                }
+            } else if (fcfs) {
+                fcfs = false;
+                int reserved_nodes = jobs[i]->nodes - total_free_nodes;
+                if (reserved_nodes <= relinquish_times.size()) {
+                    reservation_time = relinquish_times[reserved_nodes-1];
                 }
             }
             i++;
@@ -366,12 +388,13 @@ public:
 
     std::vector<SlurmCtldMsg*> schedule(std::map<int, Job*> &jobs,
                                         std::vector<Resource> &resrc,
-                                        long &jobs_remaining) {
+                                        long &jobs_remaining,
+                                        double curr_time) {
         counter++;
         std::vector<Job*> runnable_jobs = getRunnableJobs(jobs);
         std::vector<SlurmCtldMsg*> res;
         if (type == "fcfs_backfill") {
-            res = fcfs_backfill_scheduler(runnable_jobs, resrc, jobs_remaining);
+            res = fcfs_backfill_scheduler(runnable_jobs, resrc, jobs_remaining, curr_time);
         } else if (type == "remote_fcfs_bf" ||
                    type == "remote_heuristic") {
             res = remote_send_all_jobs(jobs, resrc, jobs_remaining);

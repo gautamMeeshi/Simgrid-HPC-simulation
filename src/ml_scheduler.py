@@ -45,14 +45,14 @@ def LoadModel():
 def LoadModel2():
     global model2
     model2 = tf.keras.Sequential([
-        tf.keras.layers.Dense(128, activation='relu', input_shape=(342,)),
-        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dense(171, activation='tanh', input_shape=(342,)),
+        tf.keras.layers.Dense(128, activation='tanh'),
         tf.keras.layers.Dense(64, activation='sigmoid')  # No activation function for final layer for regression
     ])
     model2.compile(optimizer='adam', loss='mse')
     model2.summary()
     try:
-        model2.load_weights("./models/qmodel2.1.weights.h5")
+        model2.load_weights("./models/qmodel4.2.weights.h5")
         print("PYTHON INFO: Model weights found, loading...")
     except Exception as e:
         print(e)

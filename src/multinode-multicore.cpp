@@ -74,7 +74,7 @@ public:
     int free_cpu_sum = 0;
     for (int i=0; i < SlurmDs.size(); i++) {
       if (!nodes[i]->is_on()) {
-        resrcs[i].free_cpus = 2;// HARDCODING
+        resrcs[i].free_cpus = CPUS_PER_NODE;
         resrcs[i].node_state = FREE;
         free_cpu_sum += resrcs[i].free_cpus;
         continue;
@@ -170,7 +170,7 @@ public:
     return;
   }
 
-  void collectStoreStats(void) {
+  void storeStats(void) {
     std::ofstream stats_file("output/energy_stats.csv");
     for (int i=0; i < host_name.size(); i++) {
       stats_file << host_name[i];
@@ -199,9 +199,10 @@ public:
     }
     stats_file.close();
     std::ofstream job_stats_file("output/job_stats.csv");
-    job_stats_file << "job_id, start_time, end_time, nodes_run_on\n";
+    job_stats_file << "job_id, start_time, end_time, runtime, nodes_run_on\n";
     for (auto it = job_logs.begin(); it != job_logs.end(); it++) {
-      job_stats_file << it->first << ", " << it->second.start_time << ", " << it->second.end_time << " , (";
+      job_stats_file << it->first << ", " << it->second.start_time << ", " << it->second.end_time << ", ";
+      job_stats_file << it->second.end_time - it->second.start_time <<  ", (";
       for (int i=0; i < it->second.nodes_running.size(); i++) {
         job_stats_file << it->second.nodes_running[i];
         if (i < it->second.nodes_running.size()-1) {
@@ -220,7 +221,7 @@ public:
     // jobs that require more resource than available
     int free_cpu_sum = receiveSlurmdMsgs();
     bool train = false;
-    long curr_time = sg4::Engine::get_clock();
+    double curr_time;
     for (int i=0; i < SlurmDs.size(); i++) {
       resrcs[i].free_cpus = 0;
     }
@@ -235,9 +236,10 @@ public:
     while (jobs_remaining > 0) {
       // while there are pending jobs
       // find the number of free cpus across all the nodes
+      curr_time = sg4::Engine::get_clock();
       free_cpu_sum = receiveSlurmdMsgs();
       XBT_DEBUG("Number of free cpus in total %i", free_cpu_sum);
-      std::vector<SlurmCtldMsg*> scheduled_jobs = scheduler->schedule(jobs, resrcs, jobs_remaining);
+      std::vector<SlurmCtldMsg*> scheduled_jobs = scheduler->schedule(jobs, resrcs, jobs_remaining, curr_time);
       xbt_assert(scheduled_jobs.size() == SlurmDs.size(),
                  "Scheduler output size not same as the number of SlurmDs");
       std::set<int> jobs_scheduled;
@@ -261,12 +263,14 @@ public:
             jobs_scheduled.insert(scheduled_jobs[i]->jobs[j]->job_id);
             job_logs[scheduled_jobs[i]->jobs[j]->job_id].nodes_running.push_back(i);
             node_2_job[i] = scheduled_jobs[i]->jobs[j]->job_id;
+            resrcs[i].relinquish_time = curr_time + scheduled_jobs[i]->jobs[j]->run_time + 10;
           }
         }
       }
       for (auto& job_id: jobs_scheduled) {
         XBT_INFO("Started job %i", job_id);
         job_logs[job_id].start_time = curr_time;
+        jobs[job_id]->start_time = curr_time;
       }
 
       for (int i=0; i<SlurmDs.size(); i++) {
@@ -302,7 +306,7 @@ public:
       delete it->second;
     }
     // collect the logs from the slurmds
-    collectStoreStats();
+    storeStats();
 
     XBT_INFO("SlurmCtlD exiting");
 
