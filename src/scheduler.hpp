@@ -39,6 +39,7 @@ public:
     Scheduler(std::string scheduler_type, std::map<int, Job*> &jobs) {
         type = scheduler_type;
         counter = 0;
+        curr_free_nodes = 0;
         if (type.substr(0,6) == "remote") {
             // create sockets
             sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -118,22 +119,17 @@ public:
         bool fcfs = true;
 
         for (int j=0; j<resrc.size(); j++) {
-            if (resrc[j].relinquish_time > curr_time) {
-                relinquish_times.push_back(resrc[j].relinquish_time);
-            }
             if (resrc[j].node_state == FREE){
                 total_free_nodes ++;
+            } else {
+                relinquish_times.push_back(resrc[j].relinquish_time);
             }
             res.push_back(new SlurmCtldMsg());
         }
-        std::sort(relinquish_times.begin(), relinquish_times.end());
-        if (jobs.size() > 0 && jobs[0]->nodes > total_free_nodes) {
-            
-        }
         if (total_free_nodes == curr_free_nodes) {
+            // if the number of free nodes has not changed then no need of scheduling
             return res;
         }
-        curr_free_nodes = total_free_nodes;
         int i = 0;
         int j = 0;
         while (i < jobs.size()) {
@@ -152,6 +148,8 @@ public:
                         res[j]->sig = RUN;
                         resrc[j].free_cpus = 0;
                         resrc[j].node_state = BUSY;
+                        resrc[j].relinquish_time = curr_time + job_subset->run_time + 10;
+                        relinquish_times.push_back(resrc[j].relinquish_time);
                         total_free_nodes--;
                         nodes_distributed_on++;
                         if (nodes_distributed_on == jobs[i]->nodes) {
@@ -165,13 +163,21 @@ public:
                 }
             } else if (fcfs) {
                 fcfs = false;
+                std::sort(relinquish_times.begin(), relinquish_times.end());
                 int reserved_nodes = jobs[i]->nodes - total_free_nodes;
-                if (reserved_nodes <= relinquish_times.size()) {
-                    reservation_time = relinquish_times[reserved_nodes-1];
-                }
+                assert(reserved_nodes <= relinquish_times.size());
+                    // PROOF -
+                    // relinquish_times.size() = busy_nodes
+                    // reserved_nodes = job_nodes - free_nodes
+                    // job_nodes <= total_nodes
+                    // job_nodes <= free_nodes + busy_nodes
+                    // job_nodes - free_nodes <= busy_nodes
+                    // reserved_nodes <= relinquish_times.size()
+                reservation_time = relinquish_times[reserved_nodes-1];
             }
             i++;
         }
+        curr_free_nodes = total_free_nodes;
         return res;
     }
 
@@ -250,6 +256,7 @@ public:
         root.put("free_nodes", free_nodes);
         root.put("jobs", convertJobs2Str(jobs));
         root.put("state", "on");
+        root.put("relinquish_times", getRelinquishTimes(resrcs));
         std::ostringstream oss;
         pt::write_json(oss, root);
         std::string json_string = oss.str();

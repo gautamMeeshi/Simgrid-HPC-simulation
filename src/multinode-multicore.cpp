@@ -8,6 +8,7 @@
 #include "helper.hpp"
 #include "scheduler.hpp"
 #include "objects.hpp"
+#include "constants.hpp"
 #include <regex>
 
 long TRAINING_INTERVAL = 50000;

@@ -1,8 +1,66 @@
 #include <vector>
-#include "helper.hpp"
+#include <iostream>
+#include "constants.hpp"
 
 #ifndef OBJECTS_H
 #define OBJECTS_H
+
+enum JobState {
+  PENDING = 0, // waiting for resources
+  RUNNING = 1, // currently running
+  COMPLETED = 2, // completed
+  PREEMPTED = 3 // premepted and will be resumed later
+};
+
+class Job {
+public:
+  int job_id; // job_id of this job
+  int nodes; // number of nodes required
+  int tasks_per_node; // number of tasks per node
+  int cpus_per_task; // number of tasks per cpu
+  double computation_cost; // computation per thread
+  int priority; // higher number means higher priority
+  std::vector<int> p_job_id; // jobs on which this job is dependent
+  JobState job_state; // state of job
+  double run_time; // scaled value of runtime used by the schedulers
+  double start_time;
+  Job(int ji = 0, int n = 0, int tpn = 0, int cpt = 0,
+      double cc = 0.0, int prty = 0, std::vector<int> prnt = std::vector<int>()) {
+    job_id = ji;
+    nodes = n;
+    tasks_per_node = tpn;
+    cpus_per_task = cpt;
+    computation_cost = cc;
+    priority = prty;
+    p_job_id = prnt;
+    job_state = PENDING;
+    run_time = (double)(cc*tpn*cpt)/((double)CPU_FREQUENCY);
+    int total_threads = cpt*tpn;
+    if (total_threads <= CORES_PER_CPU*CPUS_PER_NODE) {
+      run_time = run_time/(double)(total_threads);
+    } else {
+      run_time = run_time/(double)(CORES_PER_CPU*CPUS_PER_NODE);
+    }
+    start_time = -1;
+  }
+
+  friend std::ostream & operator << (std::ostream &os, const Job &j) {
+    os << "Job id = " << j.job_id <<'\n';
+    os << "Num nodes = " << j.nodes << '\n';
+    os << "Num tasks per node = " << j.tasks_per_node << '\n';
+    os << "Num cpus per task = " << j.cpus_per_task << '\n';
+    os << "Computation volume per core = " << j.computation_cost <<'\n';
+    os << "Priority = " << j.priority << '\n';
+    os << "Job state = " << j.job_state <<'\n';
+    os << "Parent jobs: ";
+    //os << j.p_job_id.size();
+    for (int i=0; i< j.p_job_id.size(); i++) {
+      os<<j.p_job_id[i]<<',';
+    }
+    os<<'\n';
+    return os;
+  }
+};
 
 enum SlurmSignal {
     RUN = 0,
