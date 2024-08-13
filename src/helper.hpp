@@ -106,6 +106,7 @@ std::string convertJobs2Str(std::map<int, Job*> job_map) {
     str += std::to_string(job_ptr->tasks_per_node) + ",";
     str += std::to_string(job_ptr->cpus_per_task) + ",";
     str += std::to_string(job_ptr->computation_cost) + ",";
+    str += std::to_string(job_ptr->run_time) + ",";
     str += "[";
     for (int i=0; i<job_ptr->p_job_id.size(); i++) {
       str += std::to_string(job_ptr->p_job_id[i]);
@@ -133,6 +134,7 @@ std::string convertJobs2Str(std::vector<Job*> job_vec) {
     str += std::to_string(job_ptr->tasks_per_node) + ",";
     str += std::to_string(job_ptr->cpus_per_task) + ",";
     str += std::to_string(job_ptr->computation_cost) + ",";
+    str += std::to_string(job_ptr->run_time) + ",";
     str += "[";
     for (int i=0; i<job_ptr->p_job_id.size(); i++) {
       str += std::to_string(job_ptr->p_job_id[i]);
@@ -152,7 +154,10 @@ std::string convertJobs2Str(std::vector<Job*> job_vec) {
 std::string getRelinquishTimes(std::vector<Resource> &resrc) {
   std::string res = "[";
   for (int i=0; i < resrc.size(); i++) {
-    res += std::to_string(resrc[i].relinquish_time) + ",";
+    res += std::to_string(resrc[i].relinquish_time);
+    if (i != resrc.size() - 1) {
+      res += ",";
+    }
   }
   res += "]";
   return res;

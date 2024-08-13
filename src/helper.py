@@ -9,8 +9,8 @@ def FindDependentJobs(jobs_list):
     for i in range(0,len(jobs_list)):
         dependent_jobs[jobs_list[i][0]] = []
     for i in range(0,len(jobs_list)):
-        for j in range(len(jobs_list[i][6])):
-            dependent_jobs[jobs_list[i][6][j]].append(jobs_list[i][0])
+        for j in range(len(jobs_list[i][7])):
+            dependent_jobs[jobs_list[i][7][j]].append(jobs_list[i][0])
     return dependent_jobs
 
 def DFS(root, comp_dict, dependent_jobs, cumulative_comp):

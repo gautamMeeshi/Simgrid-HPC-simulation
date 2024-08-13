@@ -13,6 +13,7 @@ RUN_LOG = open('output/run_log.csv', 'w+')
 RUN_LOG.write("input,output\n")
 NUM_NODES = 150
 MAX_COMPUTATION = (700*10**12)
+MAX_RUNTIME = None
 Xs = []
 Ys = []
 model = None
@@ -58,6 +59,13 @@ def LoadModel2():
         print(e)
     return
 
+def LoadModel3():
+    '''
+    Input - 150*2 (free node, (relinquish_time-curr_time)), 64*4 (computation,nodes,cum_comp,runtime)
+    '''
+    global LoadModel3
+    return
+
 def writeRunLog(inp, out):
     '''
     free_nodes - string denoting the free nodes
@@ -97,6 +105,19 @@ def ConstructNNInput(jobs_list):
                                           cumulative_comp[jobs_list[i][0]])
     return
 
+def ConstructNN3Input(jobs_list):
+    global JOB_2_NN_DICT
+    global MAX_RUNTIME
+    jobs_list = json.loads(jobs_list)
+    dependent_jobs = helper.FindDependentJobs(jobs_list)
+    cumulative_comp = helper.FindCumulativeComp(jobs_list, dependent_jobs)
+    MAX_RUNTIME = max(map(lambda x: x[6], jobs_list))
+    for i in range(0,len(jobs_list)):
+        JOB_2_NN_DICT[jobs_list[i][0]] = (jobs_list[i][2]/NUM_NODES,
+                                          (jobs_list[i][5]*jobs_list[i][2]*jobs_list[i][3]*jobs_list[i][4])/MAX_COMPUTATION,
+                                          cumulative_comp[jobs_list[i][0]],
+                                          jobs_list[i][6]/MAX_RUNTIME)
+
 def GetNN2Input(free_nodes_str, jobs_list):
     global JOB_2_NN_DICT
     X = []
@@ -112,6 +133,29 @@ def GetNN2Input(free_nodes_str, jobs_list):
             X.extend((0,0,0))
     X = np.array([X])
     return X
+
+def GetNN3Input(free_nodes_str, relinquish_times, curr_time, jobs_list):
+    '''
+    Input - 150*2 (free node, (relinquish_time-curr_time)), 64*4 (computation,nodes,cum_comp,runtime)
+    '''
+    global JOB_2_NN_DICT
+    global MAX_RUNTIME
+    X = []
+    for i in range(0,150):
+        if free_nodes_str[i] == '1':
+            X.append(1)
+        else:
+            X.append(0)
+        if (relinquish_times[i] > curr_time):
+            X.append((relinquish_times[i]-curr_time)/MAX_RUNTIME)
+        else:
+            X.append((relinquish_times[i]-curr_time)/curr_time)
+    for i in range(0,64):
+        if i < len(jobs_list):
+            X.extend(JOB_2_NN_DICT[jobs_list[i][0]])
+        else:
+            X.extend((0,0,0,0))
+    return np.array([X])
 
 def GetNN2Output(num_free_nodes, jobs_list, X):
     global model2
@@ -130,22 +174,22 @@ def GetNN2Output(num_free_nodes, jobs_list, X):
 
 def parseJobsJson(jobs_json):
     '''
-    input - list of [[jid, nn, tpn, cpt, comp, [pid1, pid2]], []  . . . .]
+    input - list of [[jid, nn, tpn, cpt, comp, runtime, [pid1, pid2]], []  . . . .]
     output - dictionary
     key : job_id
-    value : list (jid, nn, tpn, cpt, comp, [pid1, pid2, ...])
+    value : list (jid, nn, tpn, cpt, comp, runtime, [pid1, pid2, ...])
     '''
     jobs_json = json.loads(jobs_json)
     jobs = {}
     for j in jobs_json:
         job = []
-        for i in range(6):
+        for i in range(7):
             job.append(j[i])
         if j[5] == "":
             job.append([])
         else:
             pids = []
-            for p in j[6]:
+            for p in j[7]:
                 pids.append(int(p))
             job.append(pids)
         jobs[job[0]] = job
@@ -168,7 +212,7 @@ def getRunnableJobs(jobs):
     '''
     res = []
     for jid in jobs:
-        if (jobs[jid][1] == 0 and allParentsCompleted(jobs, jobs[jid][6])):
+        if (jobs[jid][1] == 0 and allParentsCompleted(jobs, jobs[jid][7])):
             res.append(jobs[jid])
     return res
 
@@ -237,18 +281,35 @@ def fcfsBackfillScheduler(json_data):
         }
     Output - bit string of length number of jobs 1 denoting run
     '''
+    reservation_time = 0
+    relinquish_times = []
+    fcfs = True
     num_free_nodes = json_data['free_nodes'].count('1')
     jobs = parseJobsJson(json_data['jobs'])
     runnable_jobs = getRunnableJobs(jobs)
+    curr_time = float(json_data['curr_time'])  
+
+    json_data['relinquish_times'] = json.loads(json_data['relinquish_times'])
+    for i in range(0,150):
+        if (json_data['free_nodes'][i] == '0'):
+            relinquish_times.append(float(json_data['relinquish_times'][i]))
     output = ''
-    for i in range(len(runnable_jobs)):
-        if (runnable_jobs[i][2] <= num_free_nodes):
-            # output += str(runnable_jobs[i][0])+','
+    for i in range(0, len(runnable_jobs)):
+        if ((runnable_jobs[i][2] <= num_free_nodes) and \
+            (fcfs or float(runnable_jobs[i][6]) < reservation_time)):
             output += '1'
             num_free_nodes -= runnable_jobs[i][2]
-        else:
-            output += '0'
-    writeRunLog(list(GetNN2Input(json_data['free_nodes'], runnable_jobs)[0]), output)
+            relinquish_times.extend([curr_time + runnable_jobs[i][6] + 10]*runnable_jobs[i][2])
+            continue
+        elif fcfs:
+            fcfs = False
+            relinquish_times.sort()
+            reserved_nodes = runnable_jobs[i][2] - num_free_nodes
+            assert(reserved_nodes <= len(relinquish_times))
+            reservation_time = relinquish_times[reserved_nodes-1]
+        output += '0'
+    writeRunLog(list(GetNN3Input(json_data['free_nodes'], json_data['relinquish_times'],\
+                                 curr_time, runnable_jobs)[0]), output)
     return ('run' + output)
 
 def train(X, Y):
@@ -359,19 +420,24 @@ print("PYTHON INFO: socket is listening")
 clientSocket, addr = skt.accept()
 
 while True:
-    req = clientSocket.recv(2**10*10).decode()
+    req = clientSocket.recv(2**10*20).decode()
     json_data = json.loads(req)
     if json_data['state'] == 'off':
         print("PYTHON INFO: sensing remote off, stop listening")
         break
-    if SCHEDULER_TYPE == None:
+    if SCHEDULER_TYPE == None: # in the first iteration SCHEDULER_TYPE is None
         SCHEDULER_TYPE = json_data['scheduler_type']
         print("PYTHON INFO: SCHEDULER TYPE ", SCHEDULER_TYPE)
-        ConstructNNInput(json_data['jobs'])
+        if (SCHEDULER_TYPE in ['remote_learn_nn', 'remote_nn', 'remote_qnn']):
+            ConstructNNInput(json_data['jobs'])
+        if (SCHEDULER_TYPE in ['remote_nn3', 'remote_fcfs_bf']):
+            ConstructNN3Input(json_data['jobs'])
         if (SCHEDULER_TYPE == 'remote_learn_nn' or \
             SCHEDULER_TYPE == 'remote_nn' or \
             SCHEDULER_TYPE == 'remote_qnn'):
             LoadModel2()
+        if (SCHEDULER_TYPE == 'remote_nn3'):
+            LoadModel3()
     else:
         if (SCHEDULER_TYPE == "remote_heuristic"):
             res = heuristic_scheduler(json_data)

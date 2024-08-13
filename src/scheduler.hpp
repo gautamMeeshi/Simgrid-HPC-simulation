@@ -232,7 +232,8 @@ public:
 
     std::vector<SlurmCtldMsg*> remote_send_all_jobs(std::map<int, Job*> &jobs,
                                                     std::vector<Resource> &resrc,
-                                                    long &jobs_remaining) {
+                                                    long &jobs_remaining,
+                                                    double curr_time) {
         // create json req string
         std::string free_nodes;
         std::vector<SlurmCtldMsg*> res;
@@ -256,7 +257,8 @@ public:
         root.put("free_nodes", free_nodes);
         root.put("jobs", convertJobs2Str(jobs));
         root.put("state", "on");
-        root.put("relinquish_times", getRelinquishTimes(resrcs));
+        root.put("relinquish_times", getRelinquishTimes(resrc));
+        root.put("curr_time", curr_time);
         std::ostringstream oss;
         pt::write_json(oss, root);
         std::string json_string = oss.str();
@@ -404,7 +406,7 @@ public:
             res = fcfs_backfill_scheduler(runnable_jobs, resrc, jobs_remaining, curr_time);
         } else if (type == "remote_fcfs_bf" ||
                    type == "remote_heuristic") {
-            res = remote_send_all_jobs(jobs, resrc, jobs_remaining);
+            res = remote_send_all_jobs(jobs, resrc, jobs_remaining, curr_time);
         } else if (type == "remote_nn" ||
                    type == "remote_qnn" ||
                    type == "remote_learn_nn") {
