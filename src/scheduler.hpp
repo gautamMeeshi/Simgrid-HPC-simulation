@@ -181,6 +181,56 @@ public:
         return res;
     }
 
+    std::vector<SlurmCtldMsg*> aggressive_backfill_scheduler(std::vector<Job*> &jobs,
+                                                       std::vector<Resource> &resrc,
+                                                       long &jobs_remaining) {
+        std::vector<SlurmCtldMsg*> res;
+        int total_free_nodes = 0;
+        for (int j=0; j<resrc.size(); j++) {
+            if (resrc[j].node_state == FREE){
+                total_free_nodes ++;
+            }
+            res.push_back(new SlurmCtldMsg());
+        }
+        if (total_free_nodes == curr_free_nodes) {
+            return res;
+        }
+        curr_free_nodes = total_free_nodes;
+        int i = 0;
+        int j = 0;
+        while (i < jobs.size()) {
+            // find if a job can be scheduled
+            int nodes_distributed_on = 0;
+            if (jobs[i]->nodes <= total_free_nodes) {
+                while (j<resrc.size()) { // iterate over the number of SlurmDs
+                    if (resrc[j].node_state == FREE) {
+                        Job *job_subset = new Job(jobs[i]->job_id, 1,
+                                                jobs[i]->tasks_per_node,
+                                                jobs[i]->cpus_per_task,
+                                                jobs[i]->computation_cost,
+                                                jobs[i]->priority,
+                                                jobs[i]->p_job_id);
+                        res[j]->jobs.push_back(job_subset);
+                        res[j]->sig = RUN;
+                        resrc[j].free_cpus = 0;
+                        resrc[j].node_state = BUSY;
+                        total_free_nodes--;
+                        nodes_distributed_on++;
+                        if (nodes_distributed_on == jobs[i]->nodes) {
+                            jobs[i]->job_state = RUNNING;
+                            jobs_remaining--;
+                            j++;
+                            break;
+                        }
+                    }
+                    j++;
+                }
+            }
+            i++;
+        }
+        return res;
+    }
+
     std::vector<SlurmCtldMsg*> fcfs_scheduler(std::vector<Job*> &jobs,
                                               std::vector<Resource> &resrc,
                                               long &jobs_remaining) {
@@ -306,7 +356,8 @@ public:
 
     std::vector<SlurmCtldMsg*> remote_send_runnable_jobs(std::vector<Job*> &jobs,
                                                         std::vector<Resource> &resrc,
-                                                        long &jobs_remaining) {
+                                                        long &jobs_remaining,
+                                                        double curr_time) {
         std::string free_nodes;
         std::vector<SlurmCtldMsg*> res;
         int total_free_nodes = 0;
@@ -345,6 +396,8 @@ public:
         root.put("free_nodes", free_nodes);
         root.put("jobs", convertJobs2Str(jobs));
         root.put("state", "on");
+        root.put("relinquish_times", getRelinquishTimes(resrc));
+        root.put("curr_time", curr_time);
         if (train) {
             root.put("train", "True");
             train = false;
@@ -404,14 +457,19 @@ public:
         std::vector<SlurmCtldMsg*> res;
         if (type == "fcfs_backfill") {
             res = fcfs_backfill_scheduler(runnable_jobs, resrc, jobs_remaining, curr_time);
+        } else if (type == "aggressive_backfill") {
+            res = aggressive_backfill_scheduler(runnable_jobs, resrc, jobs_remaining);
         } else if (type == "remote_fcfs_bf" ||
                    type == "remote_heuristic") {
             res = remote_send_all_jobs(jobs, resrc, jobs_remaining, curr_time);
         } else if (type == "remote_nn" ||
                    type == "remote_qnn" ||
-                   type == "remote_learn_nn") {
-            res = remote_send_runnable_jobs(runnable_jobs, resrc, jobs_remaining);
+                   type == "remote_learn_nn" ||
+                   type == "remote_nn3" ||
+                   type == "remote_aggressive_bf") {
+            res = remote_send_runnable_jobs(runnable_jobs, resrc, jobs_remaining, curr_time);
         } else {
+            std::cout<<"Scheduler type did not match with any defaulting to fcfs";
             res = fcfs_scheduler(runnable_jobs, resrc, jobs_remaining);
         }
         return res;

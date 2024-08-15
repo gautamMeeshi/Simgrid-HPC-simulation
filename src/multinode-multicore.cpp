@@ -41,7 +41,7 @@ class SlurmCtlD {
   std::map<int, JobLogs> job_logs;
   Scheduler *scheduler;
   std::vector<sg4::Host*> nodes;
-  std::string my_name;
+  std::string slurm_ctld_name;
   int counter = 0;
   std::vector<std::vector<std::pair<double, double>>> energy_logs;
 
@@ -54,8 +54,8 @@ public:
 
     job_file_name = args[1];
     scheduler_type = args[2];
-    my_name = sg4::this_actor::get_host()->get_name();
-    mymailbox = sg4::Mailbox::by_name(my_name);
+    slurm_ctld_name = sg4::this_actor::get_host()->get_name();
+    mymailbox = sg4::Mailbox::by_name(slurm_ctld_name);
     jobs = parseJobFile(job_file_name);
     scheduler = new Scheduler(scheduler_type, jobs);
 
@@ -249,7 +249,7 @@ public:
           continue;
         }
         if (scheduled_jobs[i]->sig == IDLE && node_2_job[i] == -1) {
-          if (nodes[i]->is_on() && nodes[i]->get_name() != my_name) {
+          if (nodes[i]->is_on() && nodes[i]->get_name() != slurm_ctld_name) {
             scheduled_jobs[i]->sig = SLEEP;
             SlurmDs[i]->put(scheduled_jobs[i], communicate_cost);
             continue;
@@ -289,10 +289,14 @@ public:
       free_cpu_sum = receiveSlurmdMsgs();
       for (int i=0; i < SlurmDs.size(); i++) {
         if (nodes[i]->is_on()) {
-          SlurmDs[i]->put(new SlurmCtldMsg(IDLE), communicate_cost);
+          if (node_2_job[i] == -1 && nodes[i]->get_name() != slurm_ctld_name) {
+            SlurmDs[i]->put(new SlurmCtldMsg(SLEEP), communicate_cost);
+          } else {
+            SlurmDs[i]->put(new SlurmCtldMsg(IDLE), communicate_cost);
+          }
         }
       }
-      sg4::this_actor::sleep_for(9);
+      sg4::this_actor::sleep_for(3);
     }
     for (int i=0; i < nodes.size(); i++) {
       nodes[i]->turn_on();
