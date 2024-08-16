@@ -18,6 +18,7 @@ namespace sg4 = simgrid::s4u;
 
 int started = 0;
 int completed = 0;
+double AVG_RESRC_UTIL = 0.0;
 
 class SlurmCtlD {
   /*
@@ -44,6 +45,7 @@ class SlurmCtlD {
   std::string slurm_ctld_name;
   int counter = 0;
   std::vector<std::vector<std::pair<double, double>>> energy_logs;
+  std::vector<std::vector<std::pair<double, SlurmSignal>>> node_op_log; // vector contains the operation performed on the node with time_stamp
 
 public:
   explicit SlurmCtlD(std::vector<std::string> args)
@@ -66,6 +68,7 @@ public:
       host_name.push_back(args[i]);
       node_2_job.push_back(-1);
       energy_logs.push_back(std::vector<std::pair<double, double>>());
+      node_op_log.push_back(std::vector<std::pair<double, SlurmSignal>>());
     }
     num_nodes = SlurmDs.size();
     XBT_INFO("Total number of nodes %zu", SlurmDs.size());
@@ -171,7 +174,7 @@ public:
     return;
   }
 
-  void storeStats(void) {
+  void storeStats(double completion_time) {
     std::ofstream stats_file("output/energy_stats.csv");
     for (int i=0; i < host_name.size(); i++) {
       stats_file << host_name[i];
@@ -213,6 +216,7 @@ public:
       job_stats_file << ")\n";
     }
     job_stats_file.close();
+    AVG_RESRC_UTIL = storeResourceUtlizationStats(node_op_log, completion_time);
   }
 
   void operator()()
@@ -223,6 +227,7 @@ public:
     int free_cpu_sum = receiveSlurmdMsgs();
     bool train = false;
     double curr_time;
+    double scheduling_start_time;
     for (int i=0; i < SlurmDs.size(); i++) {
       resrcs[i].free_cpus = 0;
     }
@@ -233,6 +238,7 @@ public:
     removeJobs();
     preSetup();
     jobs_remaining = jobs.size(); // ASSUMPTION - all the jobs are in PENDING state
+    scheduling_start_time = sg4::Engine::get_clock();
 
     while (jobs_remaining > 0) {
       // while there are pending jobs
@@ -252,7 +258,10 @@ public:
           if (nodes[i]->is_on() && nodes[i]->get_name() != slurm_ctld_name) {
             scheduled_jobs[i]->sig = SLEEP;
             SlurmDs[i]->put(scheduled_jobs[i], communicate_cost);
+            node_op_log[i].push_back({curr_time, SLEEP});
             continue;
+          } else if (host_name[i] == slurm_ctld_name && node_op_log[i].back().second != SLEEP) {
+            node_op_log[i].push_back({curr_time, SLEEP});
           }
         } else if (scheduled_jobs[i]->sig == RUN && nodes[i]->is_on() == false) {
           nodes[i]->turn_on();
@@ -266,6 +275,7 @@ public:
             node_2_job[i] = scheduled_jobs[i]->jobs[j]->job_id;
             resrcs[i].relinquish_time = curr_time + scheduled_jobs[i]->jobs[j]->run_time + 10;
           }
+          node_op_log[i].push_back({curr_time, RUN});
         }
       }
       for (auto& job_id: jobs_scheduled) {
@@ -286,13 +296,19 @@ public:
     delete scheduler;
     while (completed_jobs != runnable_jobs) {
       // wait until all jobs have completed
+      curr_time = sg4::Engine::get_clock();
       free_cpu_sum = receiveSlurmdMsgs();
       for (int i=0; i < SlurmDs.size(); i++) {
         if (nodes[i]->is_on()) {
           if (node_2_job[i] == -1 && nodes[i]->get_name() != slurm_ctld_name) {
             SlurmDs[i]->put(new SlurmCtldMsg(SLEEP), communicate_cost);
+            node_op_log[i].push_back({curr_time, SLEEP});
           } else {
             SlurmDs[i]->put(new SlurmCtldMsg(IDLE), communicate_cost);
+          }
+          if (node_2_job[i] == -1 && host_name[i] == slurm_ctld_name &&
+              node_op_log[i].back().second != SLEEP) {
+            node_op_log[i].push_back({curr_time, SLEEP});
           }
         }
       }
@@ -303,15 +319,17 @@ public:
     }
     // send termination request
     receiveSlurmdMsgs();
+    curr_time = sg4::Engine::get_clock();
     for (int i=0; i < SlurmDs.size(); i++) {
       SlurmDs[i]->put(new SlurmCtldMsg(STOP), communicate_cost);
+      node_op_log[i].push_back({curr_time, STOP});
     }
     // clean up the jobs
     for (auto it = jobs.begin(); it != jobs.end(); it++) {
       delete it->second;
     }
     // collect the logs from the slurmds
-    storeStats();
+    storeStats(curr_time - scheduling_start_time);
 
     XBT_INFO("SlurmCtlD exiting");
 
@@ -446,6 +464,7 @@ void generateStats(sg4::Engine &e, double exec_time) {
   XBT_INFO("Average power consumption of the system = %lfKW", total_energy_consumption/exec_time/1000);
   XBT_INFO("Average power consumption per CPU = %lfW", total_energy_consumption/exec_time/300);
   XBT_INFO("EDP of the system = %lfGJs", total_energy_consumption*exec_time/1000000000);
+  XBT_INFO("Resource utilization = %lf%%", AVG_RESRC_UTIL*100);
   stats_file.close();
 }
 

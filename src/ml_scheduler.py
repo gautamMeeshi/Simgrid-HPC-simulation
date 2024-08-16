@@ -27,6 +27,17 @@ print('RANDOM SEED ', SEED)
 random.seed(SEED)
 JOB_2_NN_DICT = {}
 
+try:
+    skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+except Exception as e:
+    print(e)
+    print('PYTHON ERR: socket creation failed')
+skt.bind((ADDR, PORT))
+skt.listen(5)
+print("PYTHON INFO: socket is listening")
+
+clientSocket, addr = skt.accept()
+
 def LoadModel():
     global model
     # Create a sequential model
@@ -462,16 +473,6 @@ def qnn(json_data, alpha = 0.1):
     writeRunLog(list(X[0]), output)
     return ('run' + output)
 
-try:
-    skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-except Exception as e:
-    print(e)
-    print('PYTHON ERR: socket creation failed')
-skt.bind((ADDR, PORT))
-skt.listen(5)
-print("PYTHON INFO: socket is listening")
-
-clientSocket, addr = skt.accept()
 
 while True:
     req = clientSocket.recv(2**10*20).decode()

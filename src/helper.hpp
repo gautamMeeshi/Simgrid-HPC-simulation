@@ -163,4 +163,48 @@ std::string getRelinquishTimes(std::vector<Resource> &resrc) {
   return res;
 }
 
+// Input - vector of vector containing node operations with time_stamp
+// Return - average resource utilization across all the nodes
+// Stores the resource utilization of each node in /output/resource_utilization.log
+double storeResourceUtlizationStats(std::vector<std::vector<std::pair<double, SlurmSignal>>> node_op_log,
+                                    double total_run_time) {
+  std::vector<double> total_active_time;
+  int num_nodes = node_op_log.size();
+  assert(num_nodes == NODES);
+  for (int i=0; i < num_nodes; i++) {
+    total_active_time.push_back(0);
+    double start_time = -1;
+    for (int j=0; j < node_op_log[i].size(); j++) {
+      double time_stamp = node_op_log[i][j].first;
+      if (node_op_log[i][j].second == RUN) {
+        if (start_time == -1) {
+          start_time = time_stamp;
+        }
+      } else if (node_op_log[i][j].second == SLEEP) {
+        if (start_time != -1) {
+          total_active_time[i] += time_stamp - start_time;
+        } else {
+          std::cout << "helper.hpp::WARNING: got a sleep time before start time at node "<<i <<'\n';
+        }
+        start_time = -1;
+      } else if (node_op_log[i][j].second == STOP) {
+        if (start_time != -1) {
+          total_active_time[i] += time_stamp - start_time;
+        }
+        start_time = -1;
+      }
+    }
+  }
+  std::ofstream stats_file("output/resrc_util_stats.csv");
+  stats_file << "node_number,resource_utilization\n";
+  double avg_resrc_util = 0.0;
+  for (int i=0; i < num_nodes; i++) {
+    stats_file << i+1 << ',' << total_active_time[i]/total_run_time << '\n';
+    avg_resrc_util += total_active_time[i]/total_run_time;
+  }
+  avg_resrc_util = avg_resrc_util/num_nodes;
+  stats_file << "average_resource_utilization," << avg_resrc_util << '\n';
+  stats_file.close();
+  return avg_resrc_util;
+}
 #endif
