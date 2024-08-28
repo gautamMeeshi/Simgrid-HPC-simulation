@@ -84,7 +84,7 @@ def LoadModel3():
     model3.compile(optimizer='adam', loss='mse')
     model3.summary()
     try:
-        model3.load_weights("./models/qmodel5.1.weights.h5")
+        model3.load_weights("./models/qmodel5.3.weights.h5")
         print("PYTHON INFO: Model weights found, loading...")
     except Exception as e:
         print(e)
@@ -447,6 +447,34 @@ def learning_neural_network(json_data):
         Ys = []
     return output
 
+def qnn3(json_data, alpha=0.1):
+    '''
+    90% schedule according to the neural network
+    10% take random step
+
+    record the steps taken, with the flag - nn, random
+
+    store the output for multiple runs
+
+    select the ones that decrease the energy utilization, train on them
+    '''
+    num_free_nodes = json_data['free_nodes'].count('1')
+    job_list = json.loads(json_data['jobs'])
+    curr_time = float(json_data['curr_time'])
+    json_data['relinquish_times'] = json.loads(json_data['relinquish_times'])
+    X = GetNN3Input(json_data['free_nodes'], json_data['relinquish_times'], curr_time, job_list)
+    output = ''
+    if (random.random() < alpha):
+        # take random step
+        print("PYTHON INFO: taking random step")
+        for i in range(len(job_list)):
+            output += str(random.randint(0,1))
+    else:
+        # generate neural network output
+        output = GetNN3Output(num_free_nodes, job_list, X)
+    writeRunLog(list(X[0]), output)
+    return ('run' + output)
+
 def qnn(json_data, alpha = 0.1):
     '''
     90% schedule according to the neural network
@@ -485,13 +513,14 @@ while True:
         print("PYTHON INFO: SCHEDULER TYPE ", SCHEDULER_TYPE)
         if (SCHEDULER_TYPE in ['remote_learn_nn', 'remote_nn', 'remote_qnn']):
             ConstructNNInput(json_data['jobs'])
-        if (SCHEDULER_TYPE in ['remote_nn3', 'remote_fcfs_bf', 'remote_aggressive_bf']):
+        if (SCHEDULER_TYPE in ['remote_nn3', 'remote_fcfs_bf', 'remote_aggressive_bf', 'remote_qnn3']):
             ConstructNN3Input(json_data['jobs'])
         if (SCHEDULER_TYPE == 'remote_learn_nn' or \
             SCHEDULER_TYPE == 'remote_nn' or \
             SCHEDULER_TYPE == 'remote_qnn'):
             LoadModel2()
-        if (SCHEDULER_TYPE == 'remote_nn3'):
+        if (SCHEDULER_TYPE == 'remote_nn3' or \
+            SCHEDULER_TYPE == 'remote_qnn3'):
             LoadModel3()
     else:
         if (SCHEDULER_TYPE == "remote_heuristic"):
@@ -508,6 +537,8 @@ while True:
             res = qnn(json_data)
         elif (SCHEDULER_TYPE == "remote_aggressive_bf"):
             res = aggressiveBackfillScheduler(json_data)
+        elif (SCHEDULER_TYPE == "remote_qnn3"):
+            res = qnn3(json_data)
         else:
             print(f"PYTHON ERR: UNKNOWN SCHEDULER TYPE {SCHEDULER_TYPE}")
             break

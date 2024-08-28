@@ -113,6 +113,7 @@ class JobLogs {
 public:
     double start_time;
     double end_time;
+    double waiting_time = 0;
     std::vector<int> nodes_running;
     JobLogs (double st = 0, double et = 0, std::vector<int> nr = std::vector<int>()) {
         start_time = st;
@@ -126,7 +127,7 @@ public:
     std::vector<std::pair<double, double>> energy_log;
     InfoMsg (std::vector<std::pair<double, double>> e) {
         energy_log = e;
-    } 
+    }
 };
 
 #endif

@@ -10,6 +10,7 @@
 #include "objects.hpp"
 #include "constants.hpp"
 #include <regex>
+#include <queue>
 
 long TRAINING_INTERVAL = 50000;
 
@@ -19,6 +20,7 @@ namespace sg4 = simgrid::s4u;
 int started = 0;
 int completed = 0;
 double AVG_RESRC_UTIL = 0.0;
+double AVG_WAITING_TIME = 0.0;
 
 class SlurmCtlD {
   /*
@@ -46,6 +48,8 @@ class SlurmCtlD {
   int counter = 0;
   std::vector<std::vector<std::pair<double, double>>> energy_logs;
   std::vector<std::vector<std::pair<double, SlurmSignal>>> node_op_log; // vector contains the operation performed on the node with time_stamp
+  int job_at_the_top = 0;
+  double job_top_time;
 
 public:
   explicit SlurmCtlD(std::vector<std::string> args)
@@ -203,10 +207,11 @@ public:
     }
     stats_file.close();
     std::ofstream job_stats_file("output/job_stats.csv");
-    job_stats_file << "job_id, start_time, end_time, runtime, nodes_run_on\n";
+    job_stats_file << "job_id, start_time, end_time, runtime, waiting_time, nodes_run_on\n";
     for (auto it = job_logs.begin(); it != job_logs.end(); it++) {
       job_stats_file << it->first << ", " << it->second.start_time << ", " << it->second.end_time << ", ";
-      job_stats_file << it->second.end_time - it->second.start_time <<  ", (";
+      job_stats_file << it->second.end_time - it->second.start_time << ", " << it->second.waiting_time <<  ", (";
+      AVG_WAITING_TIME += it->second.waiting_time;
       for (int i=0; i < it->second.nodes_running.size(); i++) {
         job_stats_file << it->second.nodes_running[i];
         if (i < it->second.nodes_running.size()-1) {
@@ -217,6 +222,7 @@ public:
     }
     job_stats_file.close();
     AVG_RESRC_UTIL = storeResourceUtlizationStats(node_op_log, completion_time);
+    AVG_WAITING_TIME = AVG_WAITING_TIME/job_logs.size();
   }
 
   void operator()()
@@ -239,6 +245,7 @@ public:
     preSetup();
     jobs_remaining = jobs.size(); // ASSUMPTION - all the jobs are in PENDING state
     scheduling_start_time = sg4::Engine::get_clock();
+    job_top_time = scheduling_start_time;
 
     while (jobs_remaining > 0) {
       // while there are pending jobs
@@ -282,6 +289,11 @@ public:
         XBT_INFO("Started job %i", job_id);
         job_logs[job_id].start_time = curr_time;
         jobs[job_id]->start_time = curr_time;
+        while (job_at_the_top < jobs.size() && jobs[job_at_the_top]->job_state != PENDING) {
+          job_logs[job_at_the_top].waiting_time = curr_time - job_top_time;
+          job_at_the_top++;
+          job_top_time = curr_time;
+        }
       }
 
       for (int i=0; i<SlurmDs.size(); i++) {
@@ -465,6 +477,7 @@ void generateStats(sg4::Engine &e, double exec_time) {
   XBT_INFO("Average power consumption per CPU = %lfW", total_energy_consumption/exec_time/300);
   XBT_INFO("EDP of the system = %lfGJs", total_energy_consumption*exec_time/1000000000);
   XBT_INFO("Resource utilization = %lf%%", AVG_RESRC_UTIL*100);
+  XBT_INFO("Average waiting time = %lfs", AVG_WAITING_TIME);
   stats_file.close();
 }
 

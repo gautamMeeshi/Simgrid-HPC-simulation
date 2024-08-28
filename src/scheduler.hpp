@@ -466,7 +466,8 @@ public:
                    type == "remote_qnn" ||
                    type == "remote_learn_nn" ||
                    type == "remote_nn3" ||
-                   type == "remote_aggressive_bf") {
+                   type == "remote_aggressive_bf" ||
+                   type == "remote_qnn3") {
             res = remote_send_runnable_jobs(runnable_jobs, resrc, jobs_remaining, curr_time);
         } else {
             std::cout<<"Scheduler type did not match with any defaulting to fcfs";

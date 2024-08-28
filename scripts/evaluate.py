@@ -22,6 +22,10 @@ def extractStats(stdout):
     res.runtime = float(temp[0].split()[-1][:-1])
     temp = list(filter( lambda x: 'EDP of the system' in x, stdout))
     res.edp = float(temp[0].split()[-1][:-3])
+    temp = list(filter( lambda x: 'Resource utilization' in x, stdout))
+    res.resrc_util = float(temp[0].split()[-1][:-1])
+    temp = list(filter( lambda x: 'Average waiting time' in x, stdout))
+    res.avg_wait_time = float(temp[0].split()[-1][:-1])
     return res
 
 def run100():
@@ -31,7 +35,7 @@ def run100():
     njobs_with_edp_improvement = 0
     njobs_with_E_improvement = 0
     njobs_with_T_improvement = 0
-    for i in range(101,201):
+    for i in range(1,101):
         try:
             print('-'*10, f'Running jobs{i}.csv','-'*10)
             print(f'Running fcfs_bf')
@@ -40,12 +44,17 @@ def run100():
                                     check=True, capture_output=True, text=True)
             fcfs_bf_stats = extractStats(result.stderr)
             print(fcfs_bf_stats)
-            print(f'Running remote_nn')
+            print('Running aggressive_bf')
+            result = subprocess.run(['make', 'run', 'SCHED=aggressive_backfill', f'JOB_FILE=jobs{i}.csv'],
+                                    check=True, capture_output=True, text=True)
+            aggr_bf_stats = extractStats(result.stderr)
+            print(aggr_bf_stats)
+            print(f'Running remote_nn3')
             attempts = 8
             nn_stats = None
             while attempts>0:
                 try:
-                    result = subprocess.run(['make', 'run', 'SCHED=remote_nn', f'JOB_FILE=jobs{i}.csv'],
+                    result = subprocess.run(['make', 'run', 'SCHED=remote_nn3', f'JOB_FILE=jobs{i}.csv'],
                                             check=True, capture_output=True, text=True)
                     nn_stats = extractStats(result.stderr)
                     attempts = 0

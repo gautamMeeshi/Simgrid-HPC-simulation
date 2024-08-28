@@ -42,49 +42,49 @@ def extractStats(stdout):
     return res
 
 def run100():
-    for i in range(85,501):
-        try:
-            attempts = 8
-            print('-'*10, f'Running jobs{i}.csv','-'*10)
-            while attempts > 0:
-                killPython3Processes()
-                time.sleep(5)
-                try:
-                    print(f'Running bf')
-                    result = subprocess.run(['make', 'run', 'SCHED=remote_aggressive_bf', f'JOB_FILE=jobs{i}.csv'],
-                                            check=True, capture_output=True, text=True)
-                    fcfs_bf_stats = extractStats(result.stderr)
-                    print(fcfs_bf_stats)
-                    subprocess.run(['mv', './output/run_log.csv', f'./improvements/run_log{i}.csv'])
+    for i in range(222,501):
+        attempts = 8
+        print('-'*10, f'Running jobs{i}.csv','-'*10)
+        while attempts > 0:
+            killPython3Processes()
+            time.sleep(5)
+            try:
+                print(f'Running bf')
+                result = subprocess.run(['make', 'run', 'SCHED=remote_aggressive_bf', f'JOB_FILE=jobs{i}.csv'],
+                                        check=True, capture_output=True, text=True)
+                fcfs_bf_stats = extractStats(result.stderr)
+                print(fcfs_bf_stats)
+                subprocess.run(['mv', './output/run_log.csv', f'./improvements/run_log{i}.csv'])
+                attempts = 0
+            except Exception as err:
+                print(err)
+                print('error output ', err.output)
+                print("retrying bf")
+                attempts -= 1
+        print(f'Running remote_qnn')
+        attempts = 8
+        rqnn_stats = None
+        while attempts>0:
+            killPython3Processes()
+            time.sleep(5)
+            try:
+                result = subprocess.run(['make', 'run', 'SCHED=remote_qnn3', f'JOB_FILE=jobs{i}.csv'],
+                                        check=True, capture_output=True, text=True)
+                rqnn_stats = extractStats(result.stderr)
+                print(rqnn_stats)
+                if fcfs_bf_stats.edp > rqnn_stats.edp:
                     attempts = 0
-                except:
-                    print("retrying bf")
-                    attempts -= 1
-            # print(f'Running remote_qnn')
-            # attempts = 8
-            # rqnn_stats = None
-            # while attempts>0:
-            #     try:
-            #         result = subprocess.run(['make', 'run', 'SCHED=remote_qnn', f'JOB_FILE=jobs{i}.csv'],
-            #                                 check=True, capture_output=True, text=True)
-            #         rqnn_stats = extractStats(result.stderr)
-            #         print(rqnn_stats)
-            #         if fcfs_bf_stats.edp > rqnn_stats.edp:
-            #             attempts = 0
-            #         else:
-            #             time.sleep(4)
-            #             attempts -= 2
-            #     except Exception as e:
-            #         print(e)
-            #         print('remote_qnn retrying')
-            #         time.sleep(8)
-            #         attempts -= 1
-            # if (rqnn_stats != None and fcfs_bf_stats.edp > rqnn_stats.edp):
-            #     print(f'Moving the improved run_log.csv to ./improvements/run_log{i}.csv')
-            #     subprocess.run(['mv', './output/run_log.csv', f'./improvements/run_log{i}.csv'])
-        except subprocess.CalledProcessError as e:
-            print(f"Command {e.cmd} failed with return code:", e.returncode)
-            print("Error output:", e.stderr)
+                else:
+                    attempts -= 2
+            except Exception as e:
+                print(e)
+                print('error output ', e.output)
+                print('remote_qnn retrying')
+                time.sleep(8)
+                attempts -= 1
+        if (rqnn_stats != None and fcfs_bf_stats.edp > rqnn_stats.edp):
+            print(f'Moving the improved run_log.csv to ./improvements/run_log{i}.csv')
+            subprocess.run(['mv', './output/run_log.csv', f'./improvements/run_log{i}.csv'])
 
 if __name__ == "__main__":
     run100()
