@@ -1,0 +1,1900 @@
+---------- Running jobs1.csv ----------
+Running fcfs_bf
+energy :  2733.204322
+runtime :  72722.71344
+edp :  198766.03471
+resrc_util :  45.273096
+avg_wait_time :  362.062396
+Running aggressive_bf
+energy :  2712.725215
+runtime :  65951.896589
+edp :  178909.37288
+resrc_util :  49.932829
+avg_wait_time :  328.208311
+Running remote_nn3
+energy :  2712.565498
+runtime :  65951.266616
+edp :  178897.130397
+resrc_util :  49.934894
+avg_wait_time :  328.205161
+---------- Running jobs2.csv ----------
+Running fcfs_bf
+energy :  3368.232623
+runtime :  111071.521495
+edp :  374114.722217
+resrc_util :  42.341011
+avg_wait_time :  511.965972
+Running aggressive_bf
+energy :  3310.655862
+runtime :  93062.667129
+edp :  308098.464473
+resrc_util :  50.531605
+avg_wait_time :  421.9217
+Running remote_nn3
+energy :  3310.655862
+runtime :  93062.667129
+edp :  308098.464473
+resrc_util :  50.531605
+avg_wait_time :  421.9217
+---------- Running jobs3.csv ----------
+Running fcfs_bf
+energy :  2658.472061
+runtime :  53350.138096
+edp :  141829.851564
+resrc_util :  63.065865
+avg_wait_time :  245.868522
+Running aggressive_bf
+energy :  2676.492629
+runtime :  53696.002389
+edp :  143716.954596
+resrc_util :  62.642511
+avg_wait_time :  241.616767
+Running remote_nn3
+energy :  2676.492629
+runtime :  53696.002389
+edp :  143716.954596
+resrc_util :  62.642511
+avg_wait_time :  241.616767
+---------- Running jobs4.csv ----------
+Running fcfs_bf
+energy :  3109.019569
+runtime :  130335.218677
+edp :  405214.745337
+resrc_util :  29.411694
+avg_wait_time :  642.327633
+Running aggressive_bf
+energy :  2988.852333
+runtime :  100042.227453
+edp :  299011.444939
+resrc_util :  38.314787
+avg_wait_time :  490.862689
+Running remote_nn3
+energy :  2988.852333
+runtime :  100042.227453
+edp :  299011.444939
+resrc_util :  38.314787
+avg_wait_time :  490.862689
+---------- Running jobs5.csv ----------
+Running fcfs_bf
+energy :  2967.145803
+runtime :  67557.888916
+edp :  200454.106531
+resrc_util :  56.844186
+avg_wait_time :  277.917532
+Running aggressive_bf
+energy :  2951.002806
+runtime :  68821.528024
+edp :  203092.52228
+resrc_util :  55.799416
+avg_wait_time :  284.616823
+Running remote_nn3
+energy :  2948.089938
+runtime :  67440.174621
+edp :  198819.700202
+resrc_util :  56.948376
+avg_wait_time :  280.218184
+---------- Running jobs6.csv ----------
+Running fcfs_bf
+energy :  3029.252156
+runtime :  122231.786083
+edp :  370270.901569
+resrc_util :  28.834513
+avg_wait_time :  416.349355
+Running aggressive_bf
+energy :  3046.398966
+runtime :  125364.486068
+edp :  381910.240681
+resrc_util :  28.113695
+avg_wait_time :  432.012854
+Running remote_nn3
+energy :  3045.143491
+runtime :  124530.471814
+edp :  379213.155661
+resrc_util :  28.300219
+avg_wait_time :  432.160936
+---------- Running jobs7.csv ----------
+Running fcfs_bf
+energy :  2964.889921
+runtime :  59235.993593
+edp :  175628.200376
+resrc_util :  67.487473
+avg_wait_time :  291.824767
+Running aggressive_bf
+energy :  2966.574609
+runtime :  59359.945181
+edp :  176095.706145
+resrc_util :  67.336394
+avg_wait_time :  292.444525
+Running remote_nn3
+energy :  2966.574609
+runtime :  59359.945181
+edp :  176095.706145
+resrc_util :  67.336394
+avg_wait_time :  292.444525
+---------- Running jobs8.csv ----------
+Running fcfs_bf
+energy :  2508.046237
+runtime :  50822.710516
+edp :  127465.707855
+resrc_util :  59.337868
+avg_wait_time :  221.141367
+Running aggressive_bf
+energy :  2523.882544
+runtime :  48286.092649
+edp :  121868.426334
+resrc_util :  62.45075
+avg_wait_time :  218.452307
+Running remote_nn3
+energy :  2523.882544
+runtime :  48286.092649
+edp :  121868.426334
+resrc_util :  62.45075
+avg_wait_time :  218.452307
+---------- Running jobs9.csv ----------
+Running fcfs_bf
+energy :  2800.354817
+runtime :  111866.23476
+edp :  313265.149371
+resrc_util :  30.362487
+avg_wait_time :  441.769636
+Running aggressive_bf
+energy :  2812.241471
+runtime :  116694.478307
+edp :  328173.051345
+resrc_util :  29.102057
+avg_wait_time :  465.910919
+Running remote_nn3
+energy :  2813.15609
+runtime :  116858.557496
+edp :  328741.362675
+resrc_util :  29.067532
+avg_wait_time :  466.731315
+---------- Running jobs10.csv ----------
+Running fcfs_bf
+energy :  2773.966428
+runtime :  64382.359296
+edp :  178594.503211
+resrc_util :  57.352346
+avg_wait_time :  314.513941
+Running aggressive_bf
+energy :  2759.715424
+runtime :  64893.996355
+edp :  179088.962637
+resrc_util :  56.908674
+avg_wait_time :  317.072087
+Running remote_nn3
+energy :  2755.782712
+runtime :  59736.190497
+edp :  164619.961075
+resrc_util :  61.812994
+avg_wait_time :  291.283006
+---------- Running jobs11.csv ----------
+Running fcfs_bf
+energy :  2746.637506
+runtime :  49280.717799
+edp :  135356.267809
+resrc_util :  74.076438
+avg_wait_time :  191.169592
+Running aggressive_bf
+energy :  2745.641442
+runtime :  46609.926406
+edp :  127974.145567
+resrc_util :  78.328024
+avg_wait_time :  190.682239
+Running remote_nn3
+energy :  2745.641442
+runtime :  46609.926406
+edp :  127974.145567
+resrc_util :  78.328024
+avg_wait_time :  190.682239
+---------- Running jobs12.csv ----------
+Running fcfs_bf
+energy :  3114.840611
+runtime :  181568.096597
+edp :  565555.680965
+resrc_util :  19.352067
+avg_wait_time :  548.57236
+Running aggressive_bf
+energy :  3100.638595
+runtime :  174013.30054
+edp :  539552.355702
+resrc_util :  20.191185
+avg_wait_time :  516.286672
+Running remote_nn3
+energy :  3079.026255
+runtime :  174012.457805
+edp :  535788.926351
+resrc_util :  20.190508
+avg_wait_time :  509.46717
+---------- Running jobs13.csv ----------
+Running fcfs_bf
+energy :  2848.620139
+runtime :  62172.991842
+edp :  177107.236692
+resrc_util :  57.772693
+avg_wait_time :  299.773461
+Running aggressive_bf
+energy :  2815.996626
+runtime :  52885.308795
+edp :  148924.85115
+resrc_util :  67.910554
+avg_wait_time :  181.669704
+Running remote_nn3
+energy :  2813.61991
+runtime :  52887.855132
+edp :  148806.322207
+resrc_util :  67.91323
+avg_wait_time :  181.774472
+---------- Running jobs14.csv ----------
+Running fcfs_bf
+energy :  2719.023128
+runtime :  44006.517135
+edp :  119654.737875
+resrc_util :  80.028911
+avg_wait_time :  202.694363
+Running aggressive_bf
+energy :  2707.994328
+runtime :  39546.903912
+edp :  107092.791479
+resrc_util :  89.083284
+avg_wait_time :  192.083861
+Running remote_nn3
+energy :  2708.046291
+runtime :  39548.626453
+edp :  107099.511177
+resrc_util :  89.082435
+avg_wait_time :  192.092474
+---------- Running jobs15.csv ----------
+Running fcfs_bf
+energy :  3011.771757
+runtime :  107713.545788
+edp :  324408.61504
+resrc_util :  35.238025
+avg_wait_time :  436.625871
+Running aggressive_bf
+energy :  3011.222337
+runtime :  108070.149407
+edp :  325423.247853
+resrc_util :  35.12118
+avg_wait_time :  438.408889
+Running remote_nn3
+energy :  3011.985751
+runtime :  108070.124046
+edp :  325505.673734
+resrc_util :  35.125626
+avg_wait_time :  438.408762
+---------- Running jobs16.csv ----------
+Running fcfs_bf
+energy :  2607.728072
+runtime :  51380.079746
+edp :  133985.276279
+resrc_util :  64.152549
+avg_wait_time :  255.224189
+Running aggressive_bf
+energy :  2584.614992
+runtime :  44295.077032
+edp :  114485.720149
+resrc_util :  74.411966
+avg_wait_time :  184.338421
+Running remote_nn3
+energy :  2585.43001
+runtime :  44554.932433
+edp :  115193.659406
+resrc_util :  73.9799
+avg_wait_time :  184.339823
+---------- Running jobs17.csv ----------
+Running fcfs_bf
+energy :  2755.465703
+runtime :  79097.426228
+edp :  217950.245189
+resrc_util :  41.780692
+avg_wait_time :  222.427435
+Running aggressive_bf
+energy :  2752.907301
+runtime :  78873.823859
+edp :  217132.325592
+resrc_util :  41.894184
+avg_wait_time :  221.307697
+Running remote_nn3
+energy :  2756.765928
+runtime :  79623.034425
+edp :  219502.068404
+resrc_util :  41.502017
+avg_wait_time :  225.042476
+---------- Running jobs18.csv ----------
+Running fcfs_bf
+energy :  2782.748186
+runtime :  79324.195621
+edp :  220739.261449
+resrc_util :  41.931115
+avg_wait_time :  280.202698
+Running aggressive_bf
+energy :  2791.816729
+runtime :  83616.102113
+edp :  233440.832715
+resrc_util :  39.786756
+avg_wait_time :  242.51954
+Running remote_nn3
+energy :  2800.281531
+runtime :  84638.565088
+edp :  237011.810617
+resrc_util :  39.302329
+avg_wait_time :  242.509789
+---------- Running jobs19.csv ----------
+Running fcfs_bf
+energy :  3073.748114
+runtime :  172446.106612
+edp :  530055.894951
+resrc_util :  20.044321
+avg_wait_time :  858.591442
+Running aggressive_bf
+energy :  3090.677156
+runtime :  177590.187839
+edp :  548873.936753
+resrc_util :  19.466729
+avg_wait_time :  884.311848
+Running remote_nn3
+energy :  3090.922551
+runtime :  177590.862002
+edp :  548919.600263
+resrc_util :  19.467352
+avg_wait_time :  884.315219
+---------- Running jobs20.csv ----------
+Running fcfs_bf
+energy :  2773.644339
+runtime :  74070.368062
+edp :  205444.857095
+resrc_util :  45.040886
+avg_wait_time :  369.072646
+Running aggressive_bf
+energy :  2764.78107
+runtime :  73251.967492
+edp :  202525.653088
+resrc_util :  45.555854
+avg_wait_time :  364.980695
+Running remote_nn3
+energy :  2772.812499
+runtime :  73156.514614
+edp :  202849.298121
+resrc_util :  45.619642
+avg_wait_time :  364.503717
+---------- Running jobs21.csv ----------
+Running fcfs_bf
+energy :  3372.928409
+runtime :  86608.430825
+edp :  292124.036825
+resrc_util :  58.18084
+avg_wait_time :  392.422635
+Running aggressive_bf
+energy :  3348.017373
+runtime :  65964.878013
+edp :  220851.557598
+resrc_util :  76.389609
+avg_wait_time :  259.772038
+Running remote_nn3
+energy :  3348.674563
+runtime :  66216.762849
+edp :  221738.389403
+resrc_util :  76.098038
+avg_wait_time :  259.726568
+---------- Running jobs22.csv ----------
+Running fcfs_bf
+energy :  2761.314122
+runtime :  109287.154267
+edp :  301776.162467
+resrc_util :  30.039093
+avg_wait_time :  544.671848
+Running aggressive_bf
+energy :  2751.951897
+runtime :  105008.242224
+edp :  288977.63141
+resrc_util :  31.261678
+avg_wait_time :  501.694278
+Running remote_nn3
+energy :  2752.724037
+runtime :  105007.780552
+edp :  289057.441564
+resrc_util :  31.264425
+avg_wait_time :  501.450109
+---------- Running jobs23.csv ----------
+Running fcfs_bf
+energy :  2685.431588
+runtime :  56442.219289
+edp :  151571.718593
+resrc_util :  60.429563
+avg_wait_time :  262.424223
+Running aggressive_bf
+energy :  2650.705879
+runtime :  51062.575798
+edp :  135351.869863
+resrc_util :  66.792707
+avg_wait_time :  239.297506
+Running remote_nn3
+energy :  2650.705879
+runtime :  51062.575798
+edp :  135351.869863
+resrc_util :  66.792707
+avg_wait_time :  239.297506
+---------- Running jobs24.csv ----------
+Running fcfs_bf
+energy :  2589.926943
+runtime :  80465.95849
+edp :  208400.953849
+resrc_util :  37.903952
+avg_wait_time :  401.259979
+Running aggressive_bf
+energy :  2588.614803
+runtime :  78594.972737
+edp :  203452.109833
+resrc_util :  38.792619
+avg_wait_time :  391.905051
+Running remote_nn3
+energy :  2587.959769
+runtime :  78596.260742
+edp :  203403.960806
+resrc_util :  38.794937
+avg_wait_time :  391.911491
+---------- Running jobs25.csv ----------
+Running fcfs_bf
+energy :  2924.192444
+runtime :  125570.068206
+edp :  367191.044623
+resrc_util :  29.855101
+avg_wait_time :  580.75152
+Running aggressive_bf
+energy :  2915.915167
+runtime :  115916.633221
+edp :  338003.068871
+resrc_util :  32.337394
+avg_wait_time :  532.503574
+Running remote_nn3
+energy :  2904.251899
+runtime :  115917.926007
+edp :  336654.856782
+resrc_util :  32.339769
+avg_wait_time :  532.504285
+---------- Running jobs26.csv ----------
+Running fcfs_bf
+energy :  2776.298131
+runtime :  53296.109553
+edp :  147965.889339
+resrc_util :  67.301358
+avg_wait_time :  179.738986
+Running aggressive_bf
+energy :  2786.792715
+runtime :  54538.988262
+edp :  151988.85519
+resrc_util :  65.766083
+avg_wait_time :  183.719877
+Running remote_nn3
+energy :  2775.335963
+runtime :  50981.765127
+edp :  141491.526206
+resrc_util :  70.34833
+avg_wait_time :  181.507505
+---------- Running jobs27.csv ----------
+Running fcfs_bf
+energy :  2801.945061
+runtime :  47220.600917
+edp :  132309.52954
+resrc_util :  80.334446
+avg_wait_time :  215.987081
+Running aggressive_bf
+energy :  2808.861546
+runtime :  49379.590756
+edp :  138700.433644
+resrc_util :  76.807281
+avg_wait_time :  226.78203
+Running remote_nn3
+energy :  2758.020296
+runtime :  49119.693133
+edp :  135473.110595
+resrc_util :  77.219175
+avg_wait_time :  225.482542
+---------- Running jobs28.csv ----------
+Running fcfs_bf
+energy :  2917.455252
+runtime :  171864.241876
+edp :  501406.23512
+resrc_util :  17.864081
+avg_wait_time :  857.38645
+Running aggressive_bf
+energy :  2917.130801
+runtime :  171867.852147
+edp :  501361.005202
+resrc_util :  17.862232
+avg_wait_time :  857.404501
+Running remote_nn3
+energy :  2917.130801
+runtime :  171867.852147
+edp :  501361.005202
+resrc_util :  17.862232
+avg_wait_time :  857.404501
+---------- Running jobs29.csv ----------
+Running fcfs_bf
+energy :  3016.431746
+runtime :  99677.823057
+edp :  300671.34986
+resrc_util :  39.713154
+avg_wait_time :  480.97161
+Running aggressive_bf
+energy :  3059.368986
+runtime :  98735.106514
+edp :  302067.122733
+resrc_util :  40.097799
+avg_wait_time :  476.258028
+Running remote_nn3
+energy :  3057.223821
+runtime :  98733.937205
+edp :  301851.74472
+resrc_util :  40.096634
+avg_wait_time :  476.252181
+---------- Running jobs30.csv ----------
+Running fcfs_bf
+energy :  2815.558666
+runtime :  117744.633194
+edp :  331516.922408
+resrc_util :  27.45584
+avg_wait_time :  336.378701
+Running aggressive_bf
+energy :  2762.214732
+runtime :  94520.095535
+edp :  261084.800342
+resrc_util :  34.199825
+avg_wait_time :  217.564709
+Running remote_nn3
+energy :  2762.125109
+runtime :  94518.877571
+edp :  261072.965054
+resrc_util :  34.200837
+avg_wait_time :  217.57351
+---------- Running jobs31.csv ----------
+Running fcfs_bf
+energy :  2560.611529
+runtime :  65353.685561
+edp :  167345.400738
+resrc_util :  47.423045
+avg_wait_time :  234.816738
+Running aggressive_bf
+energy :  2540.870969
+runtime :  61027.2953
+edp :  155062.48295
+resrc_util :  50.788065
+avg_wait_time :  239.536517
+Running remote_nn3
+energy :  2542.874339
+runtime :  59824.573537
+edp :  152126.372899
+resrc_util :  51.803107
+avg_wait_time :  234.827435
+---------- Running jobs32.csv ----------
+Running fcfs_bf
+energy :  2899.130663
+runtime :  67406.980699
+edp :  195421.644629
+resrc_util :  57.176784
+avg_wait_time :  288.01046
+Running aggressive_bf
+energy :  2905.090541
+runtime :  65425.342761
+edp :  190066.544413
+resrc_util :  58.927685
+avg_wait_time :  244.638911
+Running remote_nn3
+energy :  2905.090541
+runtime :  65425.342761
+edp :  190066.544413
+resrc_util :  58.927685
+avg_wait_time :  244.638911
+---------- Running jobs33.csv ----------
+Running fcfs_bf
+energy :  2773.911914
+runtime :  64241.040059
+edp :  178198.986383
+resrc_util :  55.125084
+avg_wait_time :  179.354691
+Running aggressive_bf
+energy :  2737.677059
+runtime :  53274.648709
+edp :  145848.783577
+resrc_util :  66.467328
+avg_wait_time :  181.809646
+Running remote_nn3
+energy :  2737.677059
+runtime :  53274.648709
+edp :  145848.783577
+resrc_util :  66.467328
+avg_wait_time :  181.809646
+---------- Running jobs34.csv ----------
+Running fcfs_bf
+energy :  2911.095346
+runtime :  60754.513554
+edp :  176862.181669
+resrc_util :  64.710026
+avg_wait_time :  251.725149
+Running aggressive_bf
+energy :  2916.157826
+runtime :  60552.471342
+edp :  176580.5632
+resrc_util :  64.926343
+avg_wait_time :  248.827731
+Running remote_nn3
+energy :  2924.296434
+runtime :  60548.963389
+edp :  177063.117732
+resrc_util :  64.932094
+avg_wait_time :  244.777952
+---------- Running jobs35.csv ----------
+Running fcfs_bf
+energy :  2712.1832
+runtime :  62440.064371
+edp :  169348.893604
+resrc_util :  54.357364
+avg_wait_time :  299.058618
+Running aggressive_bf
+energy :  2710.978859
+runtime :  58140.105695
+edp :  157616.597402
+resrc_util :  58.389242
+avg_wait_time :  277.558825
+Running remote_nn3
+energy :  2710.978859
+runtime :  58140.105695
+edp :  157616.597402
+resrc_util :  58.389242
+avg_wait_time :  277.558825
+---------- Running jobs36.csv ----------
+Running fcfs_bf
+energy :  3041.299087
+runtime :  131325.83357
+edp :  399401.137745
+resrc_util :  27.239905
+avg_wait_time :  650.403094
+Running aggressive_bf
+energy :  3004.014051
+runtime :  128545.541109
+edp :  386152.611713
+resrc_util :  27.829802
+avg_wait_time :  636.501631
+Running remote_nn3
+energy :  3004.02649
+runtime :  128547.015604
+edp :  386158.640112
+resrc_util :  27.82824
+avg_wait_time :  636.509004
+---------- Running jobs37.csv ----------
+Running fcfs_bf
+energy :  2870.308399
+runtime :  58624.574728
+edp :  168270.609251
+resrc_util :  64.811512
+avg_wait_time :  187.554469
+Running aggressive_bf
+energy :  2853.845704
+runtime :  56669.915802
+edp :  161727.195735
+resrc_util :  67.058664
+avg_wait_time :  185.393524
+Running remote_nn3
+energy :  2853.845704
+runtime :  56669.915802
+edp :  161727.195735
+resrc_util :  67.058664
+avg_wait_time :  185.393524
+---------- Running jobs38.csv ----------
+Running fcfs_bf
+energy :  2669.761435
+runtime :  47777.497727
+edp :  127554.520884
+resrc_util :  73.655439
+avg_wait_time :  236.550993
+Running aggressive_bf
+energy :  2640.240677
+runtime :  40883.177046
+edp :  107941.427043
+resrc_util :  86.077799
+avg_wait_time :  202.084928
+Running remote_nn3
+energy :  2650.629806
+runtime :  42193.777346
+edp :  111840.083867
+resrc_util :  83.403554
+avg_wait_time :  196.269125
+---------- Running jobs39.csv ----------
+Running fcfs_bf
+energy :  2752.160001
+runtime :  56324.653424
+edp :  155014.458196
+resrc_util :  64.539068
+avg_wait_time :  260.028366
+Running aggressive_bf
+energy :  2753.385515
+runtime :  52985.040554
+edp :  145888.243162
+resrc_util :  68.611781
+avg_wait_time :  243.330302
+Running remote_nn3
+energy :  2746.031539
+runtime :  54177.82227
+edp :  148774.008676
+resrc_util :  67.082628
+avg_wait_time :  249.29421
+---------- Running jobs40.csv ----------
+Running fcfs_bf
+energy :  3028.145843
+runtime :  102482.807434
+edp :  310332.887338
+resrc_util :  38.11418
+avg_wait_time :  485.186946
+Running aggressive_bf
+energy :  3024.370482
+runtime :  102483.220703
+edp :  309947.227588
+resrc_util :  38.108643
+avg_wait_time :  485.189012
+Running remote_nn3
+energy :  3023.575728
+runtime :  102212.909604
+edp :  309048.472542
+resrc_util :  38.210171
+avg_wait_time :  480.214439
+---------- Running jobs41.csv ----------
+Running fcfs_bf
+energy :  2675.008929
+runtime :  46632.042285
+edp :  124741.129509
+resrc_util :  76.191727
+avg_wait_time :  230.405112
+Running aggressive_bf
+energy :  2658.661648
+runtime :  44641.664409
+edp :  118687.081057
+resrc_util :  79.581824
+avg_wait_time :  220.453223
+Running remote_nn3
+energy :  2656.326246
+runtime :  44910.782179
+edp :  119297.689432
+resrc_util :  79.096519
+avg_wait_time :  221.798811
+---------- Running jobs42.csv ----------
+Running fcfs_bf
+energy :  3407.636081
+runtime :  299924.608995
+edp :  1022033.919306
+resrc_util :  11.034353
+avg_wait_time :  1494.122362
+Running aggressive_bf
+energy :  3449.38687
+runtime :  302344.46662
+edp :  1042903.033403
+resrc_util :  10.943208
+avg_wait_time :  1506.22165
+Running remote_nn3
+energy :  3449.38687
+runtime :  302344.46662
+edp :  1042903.033403
+resrc_util :  10.943208
+avg_wait_time :  1506.22165
+---------- Running jobs43.csv ----------
+Running fcfs_bf
+energy :  2932.353696
+runtime :  95921.834266
+edp :  281276.745198
+resrc_util :  38.865397
+avg_wait_time :  436.782491
+Running aggressive_bf
+energy :  2934.236658
+runtime :  93307.947559
+edp :  273787.600228
+resrc_util :  39.958158
+avg_wait_time :  423.713057
+Running remote_nn3
+energy :  2908.971067
+runtime :  93282.831492
+edp :  271357.057861
+resrc_util :  39.968073
+avg_wait_time :  423.587477
+---------- Running jobs44.csv ----------
+Running fcfs_bf
+energy :  2987.768086
+runtime :  104580.628837
+edp :  312462.66529
+resrc_util :  33.670977
+avg_wait_time :  399.467421
+Running aggressive_bf
+energy :  2937.688216
+runtime :  89184.361412
+edp :  261995.847535
+resrc_util :  39.487812
+avg_wait_time :  387.984568
+Running remote_nn3
+energy :  2937.950009
+runtime :  89182.447329
+edp :  262013.571961
+resrc_util :  39.484879
+avg_wait_time :  387.990036
+---------- Running jobs45.csv ----------
+Running fcfs_bf
+energy :  3150.362847
+runtime :  146039.578296
+edp :  460077.66159
+resrc_util :  25.207568
+avg_wait_time :  707.925107
+Running aggressive_bf
+energy :  3122.791294
+runtime :  143689.944373
+edp :  448713.707268
+resrc_util :  25.623802
+avg_wait_time :  696.176911
+Running remote_nn3
+energy :  3122.791294
+runtime :  143689.944373
+edp :  448713.707268
+resrc_util :  25.623802
+avg_wait_time :  696.176911
+---------- Running jobs46.csv ----------
+Running fcfs_bf
+energy :  2984.846295
+runtime :  147914.189032
+edp :  441501.119124
+resrc_util :  23.459992
+avg_wait_time :  715.087997
+Running aggressive_bf
+energy :  2985.317747
+runtime :  147917.679077
+edp :  441581.272456
+resrc_util :  23.461144
+avg_wait_time :  715.105447
+Running remote_nn3
+energy :  2985.317747
+runtime :  147917.679077
+edp :  441581.272456
+resrc_util :  23.461144
+avg_wait_time :  715.105447
+---------- Running jobs47.csv ----------
+Running fcfs_bf
+energy :  2688.581135
+runtime :  73208.365672
+edp :  196826.63084
+resrc_util :  45.087287
+avg_wait_time :  362.711694
+Running aggressive_bf
+energy :  2681.288849
+runtime :  71011.048286
+edp :  190401.131925
+resrc_util :  46.481241
+avg_wait_time :  351.725107
+Running remote_nn3
+energy :  2681.322271
+runtime :  71010.60209
+edp :  190402.30888
+resrc_util :  46.477507
+avg_wait_time :  351.722876
+---------- Running jobs48.csv ----------
+Running fcfs_bf
+energy :  3311.075559
+runtime :  128581.752656
+edp :  425743.89859
+resrc_util :  33.496369
+avg_wait_time :  633.185754
+Running aggressive_bf
+energy :  3305.127597
+runtime :  128091.878023
+edp :  423360.000951
+resrc_util :  33.623113
+avg_wait_time :  630.736381
+Running remote_nn3
+energy :  3294.130155
+runtime :  127263.471045
+edp :  419222.437659
+resrc_util :  33.841501
+avg_wait_time :  626.594346
+---------- Running jobs49.csv ----------
+Running fcfs_bf
+energy :  2525.063276
+runtime :  37526.36162
+edp :  94756.437626
+resrc_util :  82.315589
+avg_wait_time :  177.680077
+Running aggressive_bf
+energy :  2528.811989
+runtime :  38751.152788
+edp :  97994.379757
+resrc_util :  79.71511
+avg_wait_time :  189.186729
+Running remote_nn3
+energy :  2527.68252
+runtime :  38325.726963
+edp :  96875.270103
+resrc_util :  80.612126
+avg_wait_time :  181.676748
+---------- Running jobs50.csv ----------
+Running fcfs_bf
+energy :  3435.331576
+runtime :  235726.307215
+edp :  809798.026394
+resrc_util :  15.796717
+avg_wait_time :  1170.457114
+Running aggressive_bf
+energy :  3350.761223
+runtime :  215758.065929
+edp :  722953.760772
+resrc_util :  17.254218
+avg_wait_time :  1070.615908
+Running remote_nn3
+energy :  3366.193689
+runtime :  210663.529623
+edp :  709134.243901
+resrc_util :  17.673934
+avg_wait_time :  1045.143226
+---------- Running jobs51.csv ----------
+Running fcfs_bf
+energy :  3011.41378
+runtime :  111587.669502
+edp :  336036.645602
+resrc_util :  32.620997
+avg_wait_time :  294.866831
+Running aggressive_bf
+energy :  2965.505554
+runtime :  97586.899262
+edp :  289394.491766
+resrc_util :  37.300969
+avg_wait_time :  287.954057
+Running remote_nn3
+energy :  2964.615595
+runtime :  97587.534291
+edp :  289309.526004
+resrc_util :  37.300369
+avg_wait_time :  287.957362
+---------- Running jobs52.csv ----------
+Running fcfs_bf
+energy :  2542.761778
+runtime :  49550.460752
+edp :  125995.017692
+resrc_util :  62.405346
+avg_wait_time :  219.658331
+Running aggressive_bf
+energy :  2520.500445
+runtime :  42084.2883
+edp :  106073.467406
+resrc_util :  73.488224
+avg_wait_time :  203.439814
+Running remote_nn3
+energy :  2519.944828
+runtime :  42745.492378
+edp :  107716.282436
+resrc_util :  72.3477
+avg_wait_time :  206.745835
+---------- Running jobs53.csv ----------
+Running fcfs_bf
+energy :  2676.362626
+runtime :  68949.612907
+edp :  184534.167046
+resrc_util :  49.020955
+avg_wait_time :  302.773013
+Running aggressive_bf
+energy :  2629.194853
+runtime :  57338.461126
+edp :  150753.986861
+resrc_util :  58.945398
+avg_wait_time :  278.888818
+Running remote_nn3
+energy :  2629.171134
+runtime :  57339.142515
+edp :  150754.418335
+resrc_util :  58.946224
+avg_wait_time :  278.892225
+---------- Running jobs54.csv ----------
+Running fcfs_bf
+energy :  2668.556915
+runtime :  51876.327079
+edp :  138434.931358
+resrc_util :  65.68261
+avg_wait_time :  225.950435
+Running aggressive_bf
+energy :  2634.955763
+runtime :  43397.314945
+edp :  114350.005126
+resrc_util :  78.523784
+avg_wait_time :  188.471556
+Running remote_nn3
+energy :  2638.626195
+runtime :  43849.903977
+edp :  115703.505278
+resrc_util :  77.689377
+avg_wait_time :  193.542996
+---------- Running jobs55.csv ----------
+Running fcfs_bf
+energy :  2480.437465
+runtime :  45872.524839
+edp :  113783.92922
+resrc_util :  67.480386
+avg_wait_time :  220.54075
+Running aggressive_bf
+energy :  2441.599523
+runtime :  40647.629756
+edp :  99245.23341
+resrc_util :  76.14844
+avg_wait_time :  177.927577
+Running remote_nn3
+energy :  2450.37995
+runtime :  40496.204259
+edp :  99231.086971
+resrc_util :  76.44205
+avg_wait_time :  177.173675
+---------- Running jobs56.csv ----------
+Running fcfs_bf
+energy :  2749.363244
+runtime :  96601.606386
+edp :  265592.905911
+resrc_util :  33.867419
+avg_wait_time :  466.283736
+Running aggressive_bf
+energy :  2737.590091
+runtime :  95311.609895
+edp :  260924.118854
+resrc_util :  34.333197
+avg_wait_time :  459.83374
+Running remote_nn3
+energy :  2735.964998
+runtime :  95311.017065
+edp :  260767.606591
+resrc_util :  34.328361
+avg_wait_time :  459.830789
+---------- Running jobs57.csv ----------
+Running fcfs_bf
+energy :  2880.035662
+runtime :  58335.73601
+edp :  168009.000095
+resrc_util :  65.202231
+avg_wait_time :  286.128236
+Running aggressive_bf
+energy :  2870.752351
+runtime :  55992.474421
+edp :  160740.527597
+resrc_util :  67.937275
+avg_wait_time :  274.411941
+Running remote_nn3
+energy :  2856.792688
+runtime :  57212.376735
+edp :  163443.899494
+resrc_util :  66.489929
+avg_wait_time :  280.511452
+---------- Running jobs58.csv ----------
+Running fcfs_bf
+energy :  2823.977707
+runtime :  92459.24485
+edp :  261102.846222
+resrc_util :  37.780658
+avg_wait_time :  459.286945
+Running aggressive_bf
+energy :  2829.252165
+runtime :  89863.941273
+edp :  254247.750372
+resrc_util :  38.871857
+avg_wait_time :  446.310427
+Running remote_nn3
+energy :  2829.291166
+runtime :  89864.930821
+edp :  254254.054926
+resrc_util :  38.866106
+avg_wait_time :  446.315375
+---------- Running jobs59.csv ----------
+Running fcfs_bf
+energy :  3288.504746
+runtime :  226236.402395
+edp :  743979.483021
+resrc_util :  15.040966
+avg_wait_time :  276.021853
+Running aggressive_bf
+energy :  3295.899279
+runtime :  227520.54238
+edp :  749884.791558
+resrc_util :  14.953124
+avg_wait_time :  282.442553
+Running remote_nn3
+energy :  3293.794329
+runtime :  228214.752168
+edp :  751692.456428
+resrc_util :  14.912031
+avg_wait_time :  285.913602
+---------- Running jobs60.csv ----------
+Running fcfs_bf
+energy :  2734.245739
+runtime :  60992.178519
+edp :  166767.60421
+resrc_util :  55.644649
+avg_wait_time :  302.513142
+Running aggressive_bf
+energy :  2698.968918
+runtime :  57134.643843
+edp :  154204.627875
+resrc_util :  59.39169
+avg_wait_time :  283.225468
+Running remote_nn3
+energy :  2703.22133
+runtime :  57637.822983
+edp :  155807.792516
+resrc_util :  58.879236
+avg_wait_time :  285.741286
+---------- Running jobs61.csv ----------
+Running fcfs_bf
+energy :  2860.932509
+runtime :  55407.675029
+edp :  158517.618742
+resrc_util :  66.674309
+avg_wait_time :  274.280666
+Running aggressive_bf
+energy :  2841.034238
+runtime :  53024.782101
+edp :  150645.221391
+resrc_util :  69.675385
+avg_wait_time :  262.366201
+Running remote_nn3
+energy :  2841.034238
+runtime :  53024.782101
+edp :  150645.221391
+resrc_util :  69.675385
+avg_wait_time :  262.366201
+---------- Running jobs62.csv ----------
+Running fcfs_bf
+energy :  2477.615244
+runtime :  59423.707792
+edp :  147229.084287
+resrc_util :  49.965693
+avg_wait_time :  285.251838
+Running aggressive_bf
+energy :  2481.009059
+runtime :  59274.823304
+edp :  147061.373577
+resrc_util :  50.089354
+avg_wait_time :  284.507415
+Running remote_nn3
+energy :  2459.622236
+runtime :  59204.42276
+edp :  145620.514694
+resrc_util :  50.155305
+avg_wait_time :  284.155413
+---------- Running jobs63.csv ----------
+Running fcfs_bf
+energy :  2444.391081
+runtime :  42720.638389
+edp :  104425.947462
+resrc_util :  69.575507
+avg_wait_time :  186.881359
+Running aggressive_bf
+energy :  2434.399747
+runtime :  40651.553701
+edp :  98962.132037
+resrc_util :  73.130066
+avg_wait_time :  161.424433
+Running remote_nn3
+energy :  2434.399747
+runtime :  40651.553701
+edp :  98962.132037
+resrc_util :  73.130066
+avg_wait_time :  161.424433
+---------- Running jobs64.csv ----------
+Running fcfs_bf
+energy :  2615.171381
+runtime :  54882.126667
+edp :  143526.16698
+resrc_util :  59.591101
+avg_wait_time :  170.247624
+Running aggressive_bf
+energy :  2613.475977
+runtime :  54741.311215
+edp :  143065.101802
+resrc_util :  59.753163
+avg_wait_time :  172.515631
+Running remote_nn3
+energy :  2610.502733
+runtime :  54162.752033
+edp :  141392.012183
+resrc_util :  60.383536
+avg_wait_time :  172.026647
+---------- Running jobs65.csv ----------
+Running fcfs_bf
+energy :  2719.546646
+runtime :  54663.750134
+edp :  148660.618315
+resrc_util :  63.567697
+avg_wait_time :  270.147033
+Running aggressive_bf
+energy :  2696.279883
+runtime :  49689.252848
+edp :  133976.132836
+resrc_util :  69.952362
+avg_wait_time :  187.368507
+Running remote_nn3
+energy :  2710.498144
+runtime :  52954.24835
+edp :  143532.391882
+resrc_util :  65.640392
+avg_wait_time :  187.380709
+---------- Running jobs66.csv ----------
+Running fcfs_bf
+energy :  2755.205655
+runtime :  62980.261836
+edp :  173523.573547
+resrc_util :  55.013659
+avg_wait_time :  250.852842
+Running aggressive_bf
+energy :  2698.82086
+runtime :  50044.999256
+edp :  135062.487924
+resrc_util :  69.229628
+avg_wait_time :  247.362384
+Running remote_nn3
+energy :  2698.956141
+runtime :  50046.593338
+edp :  135073.560432
+resrc_util :  69.233892
+avg_wait_time :  247.370354
+---------- Running jobs67.csv ----------
+Running fcfs_bf
+energy :  2955.370092
+runtime :  67457.157154
+edp :  199360.864727
+resrc_util :  59.352269
+avg_wait_time :  330.277629
+Running aggressive_bf
+energy :  2942.983076
+runtime :  63472.449184
+edp :  186798.34373
+resrc_util :  63.089525
+avg_wait_time :  310.354154
+Running remote_nn3
+energy :  2959.939389
+runtime :  68484.185826
+edp :  202709.039127
+resrc_util :  58.458961
+avg_wait_time :  335.412785
+---------- Running jobs68.csv ----------
+Running fcfs_bf
+energy :  3105.409955
+runtime :  111486.964897
+edp :  346212.730655
+resrc_util :  36.908653
+avg_wait_time :  554.504158
+Running aggressive_bf
+energy :  3096.974059
+runtime :  112923.346998
+edp :  349720.6763
+resrc_util :  36.439357
+avg_wait_time :  561.686069
+Running remote_nn3
+energy :  3097.023101
+runtime :  112924.921193
+edp :  349731.089626
+resrc_util :  36.439859
+avg_wait_time :  561.69394
+---------- Running jobs69.csv ----------
+Running fcfs_bf
+energy :  2612.432468
+runtime :  44094.27433
+edp :  115193.313918
+resrc_util :  74.427018
+avg_wait_time :  199.989479
+Running aggressive_bf
+energy :  2620.658371
+runtime :  41646.720504
+edp :  109141.826729
+resrc_util :  78.79955
+avg_wait_time :  195.639422
+Running remote_nn3
+energy :  2594.279133
+runtime :  42706.028977
+edp :  110791.35983
+resrc_util :  76.83119
+avg_wait_time :  207.252322
+---------- Running jobs70.csv ----------
+Running fcfs_bf
+energy :  2930.973163
+runtime :  97478.864937
+edp :  285707.937138
+resrc_util :  37.660969
+avg_wait_time :  407.252207
+Running aggressive_bf
+energy :  2893.527463
+runtime :  73657.634952
+edp :  213130.38956
+resrc_util :  49.83501
+avg_wait_time :  365.154049
+Running remote_nn3
+energy :  2893.527463
+runtime :  73657.634952
+edp :  213130.38956
+resrc_util :  49.83501
+avg_wait_time :  365.154049
+---------- Running jobs71.csv ----------
+Running fcfs_bf
+energy :  2638.552656
+runtime :  36469.581254
+edp :  96226.910467
+resrc_util :  91.69606
+avg_wait_time :  177.589202
+Running aggressive_bf
+energy :  2628.046932
+runtime :  37488.737392
+edp :  98522.161284
+resrc_util :  89.195153
+avg_wait_time :  182.685666
+Running remote_nn3
+energy :  2628.046932
+runtime :  37488.737392
+edp :  98522.161284
+resrc_util :  89.195153
+avg_wait_time :  182.685666
+---------- Running jobs72.csv ----------
+Running fcfs_bf
+energy :  2879.465027
+runtime :  114075.043632
+edp :  328475.098547
+resrc_util :  30.001039
+avg_wait_time :  555.789751
+Running aggressive_bf
+energy :  2817.498661
+runtime :  90173.0728
+edp :  254062.511842
+resrc_util :  37.959653
+avg_wait_time :  436.279897
+Running remote_nn3
+energy :  2817.498661
+runtime :  90173.0728
+edp :  254062.511842
+resrc_util :  37.959653
+avg_wait_time :  436.279897
+---------- Running jobs73.csv ----------
+Running fcfs_bf
+energy :  2818.596263
+runtime :  87310.054764
+edp :  246091.794114
+resrc_util :  39.684334
+avg_wait_time :  367.531123
+Running aggressive_bf
+energy :  2823.800088
+runtime :  88834.90347
+edp :  250852.008243
+resrc_util :  39.002658
+avg_wait_time :  375.155366
+Running remote_nn3
+energy :  2823.800088
+runtime :  88834.90347
+edp :  250852.008243
+resrc_util :  39.002658
+avg_wait_time :  375.155366
+---------- Running jobs74.csv ----------
+Running fcfs_bf
+energy :  2511.423799
+runtime :  48620.906222
+edp :  122107.701008
+resrc_util :  65.013173
+avg_wait_time :  225.835484
+Running aggressive_bf
+energy :  2508.498486
+runtime :  47568.672692
+edp :  119325.943435
+resrc_util :  66.449683
+avg_wait_time :  220.574316
+Running remote_nn3
+energy :  2507.811285
+runtime :  47555.820692
+edp :  119261.023818
+resrc_util :  66.471259
+avg_wait_time :  220.510056
+---------- Running jobs75.csv ----------
+Running fcfs_bf
+energy :  2767.58543
+runtime :  55650.096222
+edp :  154016.395486
+resrc_util :  64.996603
+avg_wait_time :  253.95948
+Running aggressive_bf
+energy :  2771.099579
+runtime :  50562.191686
+edp :  140112.868074
+resrc_util :  71.537387
+avg_wait_time :  228.519984
+Running remote_nn3
+energy :  2770.831539
+runtime :  50561.850829
+edp :  140098.370961
+resrc_util :  71.546759
+avg_wait_time :  228.518253
+---------- Running jobs76.csv ----------
+Running fcfs_bf
+energy :  3068.650963
+runtime :  80539.610913
+edp :  247147.954612
+resrc_util :  49.089143
+avg_wait_time :  373.671095
+Running aggressive_bf
+energy :  3067.712021
+runtime :  80546.693303
+edp :  247094.059301
+resrc_util :  49.089152
+avg_wait_time :  373.706507
+Running remote_nn3
+energy :  3067.795355
+runtime :  80545.240197
+edp :  247096.313721
+resrc_util :  49.092856
+avg_wait_time :  373.699242
+---------- Running jobs77.csv ----------
+Running fcfs_bf
+energy :  2790.936648
+runtime :  61981.535333
+edp :  172986.538447
+resrc_util :  56.254187
+avg_wait_time :  204.799274
+Running aggressive_bf
+energy :  2787.419858
+runtime :  60172.444405
+edp :  167725.866421
+resrc_util :  57.938048
+avg_wait_time :  204.575082
+Running remote_nn3
+energy :  2787.419858
+runtime :  60172.444405
+edp :  167725.866421
+resrc_util :  57.938048
+avg_wait_time :  204.575082
+---------- Running jobs78.csv ----------
+Running fcfs_bf
+energy :  2605.96342
+runtime :  54418.217415
+edp :  141811.883981
+resrc_util :  57.977892
+avg_wait_time :  269.093
+Running aggressive_bf
+energy :  2566.112255
+runtime :  42260.23762
+edp :  108444.513635
+resrc_util :  74.64868
+avg_wait_time :  198.648059
+Running remote_nn3
+energy :  2566.112255
+runtime :  42260.23762
+edp :  108444.513635
+resrc_util :  74.64868
+avg_wait_time :  198.648059
+---------- Running jobs79.csv ----------
+Running fcfs_bf
+energy :  2936.886458
+runtime :  108548.229868
+edp :  318793.826389
+resrc_util :  33.987866
+avg_wait_time :  540.206905
+Running aggressive_bf
+energy :  2924.796186
+runtime :  103230.469306
+edp :  301928.08293
+resrc_util :  35.743433
+avg_wait_time :  513.618102
+Running remote_nn3
+energy :  2925.323293
+runtime :  103399.307445
+edp :  302476.40254
+resrc_util :  35.681173
+avg_wait_time :  514.462293
+---------- Running jobs80.csv ----------
+Running fcfs_bf
+energy :  2531.893135
+runtime :  61375.497238
+edp :  155396.200099
+resrc_util :  52.415149
+avg_wait_time :  304.523814
+Running aggressive_bf
+energy :  2498.796965
+runtime :  51232.123265
+edp :  128018.674102
+resrc_util :  62.801615
+avg_wait_time :  253.806944
+Running remote_nn3
+energy :  2498.796001
+runtime :  51232.146687
+edp :  128018.683261
+resrc_util :  62.801535
+avg_wait_time :  253.807061
+---------- Running jobs81.csv ----------
+Running fcfs_bf
+energy :  2928.368518
+runtime :  89175.33317
+edp :  261138.238207
+resrc_util :  45.3297
+avg_wait_time :  323.194422
+Running aggressive_bf
+energy :  2912.456922
+runtime :  71832.225408
+edp :  209208.262144
+resrc_util :  56.26554
+avg_wait_time :  308.462608
+Running remote_nn3
+energy :  2912.456922
+runtime :  71832.225408
+edp :  209208.262144
+resrc_util :  56.26554
+avg_wait_time :  308.462608
+---------- Running jobs82.csv ----------
+Running fcfs_bf
+energy :  2584.869226
+runtime :  39529.046526
+edp :  102177.415885
+resrc_util :  83.53209
+avg_wait_time :  172.474833
+Running aggressive_bf
+energy :  2591.74009
+runtime :  37569.01384
+edp :  97369.119305
+resrc_util :  87.862982
+avg_wait_time :  170.417884
+Running remote_nn3
+energy :  2591.74009
+runtime :  37569.01384
+edp :  97369.119305
+resrc_util :  87.862982
+avg_wait_time :  170.417884
+---------- Running jobs83.csv ----------
+Running fcfs_bf
+energy :  3136.51496
+runtime :  194694.673952
+edp :  610662.757437
+resrc_util :  17.416291
+avg_wait_time :  964.848568
+Running aggressive_bf
+energy :  3130.851305
+runtime :  191332.960774
+edp :  599035.049949
+resrc_util :  17.721224
+avg_wait_time :  948.040002
+Running remote_nn3
+energy :  3130.851305
+runtime :  191332.960774
+edp :  599035.049949
+resrc_util :  17.721224
+avg_wait_time :  948.040002
+---------- Running jobs84.csv ----------
+Running fcfs_bf
+energy :  3244.769466
+runtime :  183517.076838
+edp :  595470.607482
+resrc_util :  20.07827
+avg_wait_time :  455.865144
+Running aggressive_bf
+energy :  3243.907749
+runtime :  180671.928398
+edp :  586083.068501
+resrc_util :  20.397287
+avg_wait_time :  441.654453
+Running remote_nn3
+energy :  3243.907749
+runtime :  180671.928398
+edp :  586083.068501
+resrc_util :  20.397287
+avg_wait_time :  441.654453
+---------- Running jobs85.csv ----------
+Running fcfs_bf
+energy :  3007.223408
+runtime :  72111.362569
+edp :  216854.97751
+resrc_util :  55.304629
+avg_wait_time :  358.782086
+Running aggressive_bf
+energy :  2960.869864
+runtime :  61496.540479
+edp :  182083.253462
+resrc_util :  64.851576
+avg_wait_time :  305.708002
+Running remote_nn3
+energy :  2971.58087
+runtime :  61148.385927
+edp :  181707.373851
+resrc_util :  65.217109
+avg_wait_time :  303.967229
+---------- Running jobs86.csv ----------
+Running fcfs_bf
+energy :  2794.446927
+runtime :  99849.673356
+edp :  279024.61284
+resrc_util :  33.746661
+avg_wait_time :  453.527619
+Running aggressive_bf
+energy :  2795.137729
+runtime :  99109.720522
+edp :  277025.319121
+resrc_util :  34.003335
+avg_wait_time :  449.827855
+Running remote_nn3
+energy :  2796.802219
+runtime :  99108.814932
+edp :  277187.753493
+resrc_util :  34.005951
+avg_wait_time :  449.823327
+---------- Running jobs87.csv ----------
+Running fcfs_bf
+energy :  2840.908784
+runtime :  71359.780513
+edp :  202726.627268
+resrc_util :  50.638838
+avg_wait_time :  261.541771
+Running aggressive_bf
+energy :  2832.670624
+runtime :  67008.883749
+edp :  189814.09652
+resrc_util :  53.916825
+avg_wait_time :  240.674397
+Running remote_nn3
+energy :  2829.714521
+runtime :  65253.803087
+edp :  184649.634138
+resrc_util :  55.368096
+avg_wait_time :  240.875038
+---------- Running jobs88.csv ----------
+Running fcfs_bf
+energy :  2833.077501
+runtime :  57135.886677
+edp :  161870.395021
+resrc_util :  66.305278
+avg_wait_time :  282.980686
+Running aggressive_bf
+energy :  2817.89912
+runtime :  55262.221878
+edp :  155723.366407
+resrc_util :  68.55082
+avg_wait_time :  273.612362
+Running remote_nn3
+energy :  2768.869005
+runtime :  48866.740364
+edp :  135305.602781
+resrc_util :  77.531155
+avg_wait_time :  241.634955
+---------- Running jobs89.csv ----------
+Running fcfs_bf
+energy :  2649.090291
+runtime :  46432.84422
+edp :  123004.796828
+resrc_util :  72.589657
+avg_wait_time :  203.701392
+Running aggressive_bf
+energy :  2671.132056
+runtime :  45322.994855
+edp :  121063.704453
+resrc_util :  74.386572
+avg_wait_time :  198.151395
+Running remote_nn3
+energy :  2677.419685
+runtime :  47406.750103
+edp :  126927.765937
+resrc_util :  71.117096
+avg_wait_time :  208.570921
+---------- Running jobs90.csv ----------
+Running fcfs_bf
+energy :  2662.575729
+runtime :  58196.866923
+edp :  154953.565372
+resrc_util :  59.24496
+avg_wait_time :  247.828964
+Running aggressive_bf
+energy :  2665.233428
+runtime :  58197.721363
+edp :  155110.512418
+resrc_util :  59.25655
+avg_wait_time :  247.833236
+Running remote_nn3
+energy :  2664.795463
+runtime :  58197.20988
+edp :  155083.660821
+resrc_util :  59.247964
+avg_wait_time :  247.830679
+---------- Running jobs91.csv ----------
+Running fcfs_bf
+energy :  2732.310596
+runtime :  54261.297193
+edp :  148258.717298
+resrc_util :  65.6076
+avg_wait_time :  267.198362
+Running aggressive_bf
+energy :  2710.14942
+runtime :  45759.258298
+edp :  124014.427356
+resrc_util :  77.803136
+avg_wait_time :  217.614794
+Running remote_nn3
+energy :  2708.414422
+runtime :  45739.59355
+edp :  123881.774845
+resrc_util :  77.841593
+avg_wait_time :  217.603763
+---------- Running jobs92.csv ----------
+Running fcfs_bf
+energy :  2841.135381
+runtime :  90632.445855
+edp :  257499.048595
+resrc_util :  40.663963
+avg_wait_time :  448.418426
+Running aggressive_bf
+energy :  2860.149897
+runtime :  90630.932736
+edp :  259218.052954
+resrc_util :  40.666672
+avg_wait_time :  448.41086
+Running remote_nn3
+energy :  2860.275587
+runtime :  90629.490947
+edp :  259225.320452
+resrc_util :  40.667098
+avg_wait_time :  448.403651
+---------- Running jobs93.csv ----------
+Running fcfs_bf
+energy :  3112.224951
+runtime :  90142.086864
+edp :  280542.451903
+resrc_util :  45.521342
+avg_wait_time :  444.758996
+Running aggressive_bf
+energy :  3072.529321
+runtime :  91837.137555
+edp :  282172.297915
+resrc_util :  44.666082
+avg_wait_time :  453.234289
+Running remote_nn3
+energy :  3087.439624
+runtime :  91839.705047
+edp :  283549.544413
+resrc_util :  44.669666
+avg_wait_time :  453.247126
+---------- Running jobs94.csv ----------
+Running fcfs_bf
+energy :  2740.622959
+runtime :  52218.689493
+edp :  143111.739322
+resrc_util :  66.056717
+avg_wait_time :  240.500922
+Running aggressive_bf
+energy :  2707.260138
+runtime :  42015.904643
+edp :  113747.98379
+resrc_util :  82.106121
+avg_wait_time :  205.639321
+Running remote_nn3
+energy :  2707.59282
+runtime :  42010.961419
+edp :  113748.577501
+resrc_util :  82.102484
+avg_wait_time :  205.619833
+---------- Running jobs95.csv ----------
+Running fcfs_bf
+energy :  3182.617801
+runtime :  135970.665391
+edp :  432742.660125
+resrc_util :  28.783364
+avg_wait_time :  207.754388
+Running aggressive_bf
+energy :  3097.754569
+runtime :  110818.708378
+edp :  343289.16019
+resrc_util :  35.319371
+avg_wait_time :  203.184948
+Running remote_nn3
+energy :  3097.754569
+runtime :  110818.708378
+edp :  343289.16019
+resrc_util :  35.319371
+avg_wait_time :  203.184948
+---------- Running jobs96.csv ----------
+Running fcfs_bf
+energy :  2858.67963
+runtime :  73878.523174
+edp :  211195.02931
+resrc_util :  49.549808
+avg_wait_time :  319.169818
+Running aggressive_bf
+energy :  2842.400996
+runtime :  73506.814899
+edp :  208935.843901
+resrc_util :  49.780849
+avg_wait_time :  326.466436
+Running remote_nn3
+energy :  2855.95132
+runtime :  73801.053969
+edp :  210772.217505
+resrc_util :  49.59138
+avg_wait_time :  321.342829
+---------- Running jobs97.csv ----------
+Running fcfs_bf
+energy :  2881.440804
+runtime :  76074.611865
+edp :  219204.49079
+resrc_util :  49.837579
+avg_wait_time :  378.381648
+Running aggressive_bf
+energy :  2874.535462
+runtime :  73633.660745
+edp :  211662.569001
+resrc_util :  51.488963
+avg_wait_time :  366.176893
+Running remote_nn3
+energy :  2874.535462
+runtime :  73633.660745
+edp :  211662.569001
+resrc_util :  51.488963
+avg_wait_time :  366.176893
+---------- Running jobs98.csv ----------
+Running fcfs_bf
+energy :  2948.230336
+runtime :  56510.273857
+edp :  166605.30366
+resrc_util :  70.015683
+avg_wait_time :  213.714004
+Running aggressive_bf
+energy :  2952.210821
+runtime :  58142.556723
+edp :  171649.085136
+resrc_util :  68.060476
+avg_wait_time :  207.939875
+Running remote_nn3
+energy :  2952.210821
+runtime :  58142.556723
+edp :  171649.085136
+resrc_util :  68.060476
+avg_wait_time :  207.939875
+---------- Running jobs99.csv ----------
+Running fcfs_bf
+energy :  2863.034258
+runtime :  90157.889804
+edp :  258125.127175
+resrc_util :  39.196334
+avg_wait_time :  371.183068
+Running aggressive_bf
+energy :  2807.408918
+runtime :  79835.190546
+edp :  224130.025926
+resrc_util :  44.269568
+avg_wait_time :  321.135024
+Running remote_nn3
+energy :  2807.408918
+runtime :  79835.190546
+edp :  224130.025926
+resrc_util :  44.269568
+avg_wait_time :  321.135024
+---------- Running jobs100.csv ----------
+Running fcfs_bf
+energy :  3183.504262
+runtime :  127803.916903
+edp :  406864.314122
+resrc_util :  30.655636
+avg_wait_time :  638.279552
+Running aggressive_bf
+energy :  3125.730279
+runtime :  110260.541033
+edp :  344644.711718
+resrc_util :  35.532031
+avg_wait_time :  550.562672
+Running remote_nn3
+energy :  3125.636684
+runtime :  110258.570232
+edp :  344628.231796
+resrc_util :  35.530714
+avg_wait_time :  550.552818
