@@ -84,7 +84,7 @@ def LoadModel3():
     model3.compile(optimizer='adam', loss='mse')
     model3.summary()
     try:
-        model3.load_weights("./models/qmodel5.3.weights.h5")
+        model3.load_weights("./models/qmodel5.5.weights.h5")
         print("PYTHON INFO: Model weights found, loading...")
     except Exception as e:
         print(e)
@@ -327,6 +327,33 @@ def aggressiveBackfillScheduler(json_date):
     writeRunLog(list(X[0]), output)
     return ('run' + output)
 
+def fcfs(json_data):
+    '''
+    Input - json data
+        {
+        'free_nodes': bit_string,
+        'jobs': [ [jid, job_state, nn, tpn, cpt, [job_id1, job_id2,..]], ...]
+        }
+    Output - bit string of length number of jobs 1 denoting run
+    '''
+    num_free_nodes = json_data['free_nodes'].count('1')
+    jobs = parseJobsJson(json_data['jobs'])
+    runnable_jobs = getRunnableJobs(jobs)
+    curr_time = float(json_data['curr_time'])
+    json_data['relinquish_times'] = json.loads(json_data['relinquish_times'])
+    output = ''
+    for i in range(0, len(runnable_jobs)):
+        if (runnable_jobs[i][2] <= num_free_nodes):
+            output += '1'
+            num_free_nodes -= runnable_jobs[i][2]
+        else:
+            break
+    if len(output) < len(runnable_jobs):
+        output = output + '0'*(len(runnable_jobs) - len(output))
+    writeRunLog(list(GetNN3Input(json_data['free_nodes'], json_data['relinquish_times'],\
+                                 curr_time, runnable_jobs)[0]), output)
+    return ('run' + output)
+
 def fcfsBackfillScheduler(json_data):
     '''
     Input - json data
@@ -513,7 +540,7 @@ while True:
         print("PYTHON INFO: SCHEDULER TYPE ", SCHEDULER_TYPE)
         if (SCHEDULER_TYPE in ['remote_learn_nn', 'remote_nn', 'remote_qnn']):
             ConstructNNInput(json_data['jobs'])
-        if (SCHEDULER_TYPE in ['remote_nn3', 'remote_fcfs_bf', 'remote_aggressive_bf', 'remote_qnn3']):
+        if (SCHEDULER_TYPE in ['remote_nn3', 'remote_fcfs', 'remote_fcfs_bf', 'remote_aggressive_bf', 'remote_qnn3']):
             ConstructNN3Input(json_data['jobs'])
         if (SCHEDULER_TYPE == 'remote_learn_nn' or \
             SCHEDULER_TYPE == 'remote_nn' or \
@@ -525,6 +552,8 @@ while True:
     else:
         if (SCHEDULER_TYPE == "remote_heuristic"):
             res = heuristic_scheduler(json_data)
+        elif (SCHEDULER_TYPE == "remote_fcfs"):
+            res = fcfs(json_data)
         elif (SCHEDULER_TYPE == "remote_fcfs_bf"):
             res = fcfsBackfillScheduler(json_data)
         elif (SCHEDULER_TYPE == "remote_learn_nn"):

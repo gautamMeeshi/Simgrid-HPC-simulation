@@ -460,6 +460,7 @@ public:
         } else if (type == "aggressive_backfill") {
             res = aggressive_backfill_scheduler(runnable_jobs, resrc, jobs_remaining);
         } else if (type == "remote_fcfs_bf" ||
+                   type == "remote_fcfs" ||
                    type == "remote_heuristic") {
             res = remote_send_all_jobs(jobs, resrc, jobs_remaining, curr_time);
         } else if (type == "remote_nn" ||
@@ -469,9 +470,10 @@ public:
                    type == "remote_aggressive_bf" ||
                    type == "remote_qnn3") {
             res = remote_send_runnable_jobs(runnable_jobs, resrc, jobs_remaining, curr_time);
+        } else if (type == "fcfs") {
+            res = fcfs_scheduler(runnable_jobs, resrc, jobs_remaining);
         } else {
             std::cout<<"Scheduler type did not match with any defaulting to fcfs";
-            res = fcfs_scheduler(runnable_jobs, resrc, jobs_remaining);
         }
         return res;
     }
