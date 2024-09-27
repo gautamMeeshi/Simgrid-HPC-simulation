@@ -47,7 +47,7 @@ def runRemoteScheduler(sched, job_file_idx, previous_edp = None):
         print(f'Running {sched}')
         while attempts > 0:
             killPython3Processes()
-            time.sleep(5)
+            time.sleep(8)
             try:
                 result = subprocess.run(['make', 'run', f'SCHED={sched}', f'JOB_FILE=jobs{job_file_idx}.csv'],
                                         check=True, capture_output=True, text=True)
@@ -57,16 +57,14 @@ def runRemoteScheduler(sched, job_file_idx, previous_edp = None):
                     subprocess.run(['mv', './output/run_log.csv', f'./improvements/run_log{job_file_idx}.csv'])
                 attempts = 0
             except Exception as err:
-                # print(err)
-                # print('error output ', err.output)
                 print(f"retrying {sched}")
                 attempts -= 1
         return stats
 
 def run100():
-    for i in range(1, 101):
+    for i in range(1, 501):
         print('-'*10, f'Running jobs{i}.csv','-'*10)
-        stats = runRemoteScheduler('remmote_fcfs', i)
+        stats = runRemoteScheduler('remote_fcfs', i)
         edp = None if stats is None else stats.edp
         stats = runRemoteScheduler('remote_fcfs_bf', i, edp)
         edp = None if stats is None else stats.edp

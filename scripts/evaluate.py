@@ -30,10 +30,7 @@ def extractStats(stdout):
 
 def run100():
     total_jobs_run = 0
-    njobs_with_edp_improvement = 0
-    njobs_with_E_improvement = 0
-    njobs_with_T_improvement = 0
-    for i in range(1,10):
+    for i in range(1,11):
         try:
             print('-'*10, f'Running jobs{i}.csv','-'*10)
             print(f'Running fcfs')
@@ -54,6 +51,7 @@ def run100():
             print(f'Running remote_nn3')
             attempts = 8
             nn_stats = None
+            time.sleep(8)
             while attempts>0:
                 try:
                     result = subprocess.run(['make', 'run', 'SCHED=remote_nn3', f'JOB_FILE=jobs{i}.csv'],
@@ -63,7 +61,7 @@ def run100():
                 except:
                     print("Remote nn failed, retrying")
                     attempts -=1
-                    time.sleep(5)
+                    time.sleep(8)
             if nn_stats == None:
                 continue
             total_jobs_run +=1

@@ -47,7 +47,7 @@ model.compile(optimizer='adam', loss='mse')
 
 # Print model summary
 model.summary()
-model.load_weights("./models/qmodel5.4.weights.h5")
+model.load_weights("./models/qmodel5.5.weights.h5")
 print("Model weights found, training...")
 
 # Read the files in improvement/ dir and add
@@ -57,4 +57,4 @@ for filename in os.listdir('./improvements'):
         X,Y = loadTrainingData('./improvements/'+filename)
         model.fit(X, Y, epochs=10, batch_size=32, verbose=2)
 
-model.save_weights("./models/qmodel5.5.weights.h5")
+model.save_weights("./models/qmodel5.6.weights.h5")

@@ -84,7 +84,7 @@ def LoadModel3():
     model3.compile(optimizer='adam', loss='mse')
     model3.summary()
     try:
-        model3.load_weights("./models/qmodel5.5.weights.h5")
+        model3.load_weights("./models/qmodel5.6.weights.h5")
         print("PYTHON INFO: Model weights found, loading...")
     except Exception as e:
         print(e)
@@ -200,12 +200,21 @@ def GetNN3Output(num_free_nodes, jobs_list, X):
     global model3
     Y = model3.predict(X, verbose = None)
     output = ['0']*len(jobs_list)
+    #Method 1
+    # for i in range(0, min(64, len(jobs_list))):
+    #     if (jobs_list[i][2] <= num_free_nodes and Y[0][i] > 0.5):
+    #         output[i] = '1'
+    #         num_free_nodes -= jobs_list[i][2]
 
-    for i in range(0, min(64, len(jobs_list))):
-        if (jobs_list[i][2] <= num_free_nodes and Y[0][i] > 0.5):
-            output[i] = '1'
-            num_free_nodes -= jobs_list[i][2]
-    for i in range(0, len(jobs_list)):
+    # Method 2
+    res = [(i, (Y[0][i] if i < 64 else 0)) for i in range(len(jobs_list))]
+    res.sort(key = lambda x: x[1], reverse=True)
+    res = res[:64]
+    for i in range(0, len(res)): # sort the jobs based on the score allocated by the model
+        if (jobs_list[res[i][0]][2] <= num_free_nodes):
+            output[res[i][0]] = '1'
+            num_free_nodes -= jobs_list[res[i][0]][2]
+    for i in range(0, len(jobs_list)): # assign if any resource available in fcfs order
         if (jobs_list[i][2] <= num_free_nodes and output[i] == '0'):
             output[i] = '1'
             num_free_nodes -= jobs_list[i][2]
