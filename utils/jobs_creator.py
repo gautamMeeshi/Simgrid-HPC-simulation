@@ -29,15 +29,16 @@ def GetComputation(runtime_range, nodes, tpn, cpt):
     return __runtime2comp(runtime)
 
 def CreateJobFile(file_path):
-    runtime_range = (15*60, 360*60) # runtime in seconds
+    runtime_range = (15*60, 12*60*60) # runtime in seconds
     nodes_range = (1, 60)
     tasks_per_node_range = (1,18)
     cpus_per_task_range = (1,4)
     dependency_range = (0,5)
-    num_jobs = 200
+    num_jobs = 400
+    injection_time = 0
 
     file = open(file_path,'w+')
-    file.write('job_id,nodes,tasks-per-node,cpu-per-task,total_computation,priority,dependency\n')
+    file.write('job_id,nodes,tasks-per-node,cpu-per-task,total_computation,priority,injection_time,dependency\n')
 
     for i in range(num_jobs):
         dependency_set = set()
@@ -52,11 +53,13 @@ def CreateJobFile(file_path):
         nodes = GetNumNodes(nodes_range)
         tpn = GetNumTasksPerNode(tasks_per_node_range)
         cpt = GetNumCpusPerTask(cpus_per_task_range)
-        computation = GetComputation(runtime_range, nodes, tpn, cpt)
+        computation = str(GetComputation(runtime_range, nodes, tpn, cpt)*2)+'e9' # because frequency of CPU is 2GHz
 
-        file.write(f'''{i},{nodes},{tpn},{cpt},{computation*2}e9,1,({dependency_string})''')
+        file.write(f'''{i},{nodes},{tpn},{cpt},{computation},1,{injection_time},({dependency_string})''')
         if (i<num_jobs-1):
             file.write('\n')
+        if ((i+1)%10 == 0):
+            injection_time += 3600 # input the jobs every 1 hour
 
-for i in range(0,500):
+for i in range(0,400):
     CreateJobFile(f'../input/jobs/jobs{i+1}.csv')

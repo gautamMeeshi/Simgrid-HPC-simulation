@@ -41,7 +41,7 @@ def extractStats(stdout):
     res.edp = float(temp[0].split()[-1][:-3])
     return res
 
-def runRemoteScheduler(sched, job_file_idx, previous_edp = None):
+def runScheduler(sched, job_file_idx, previous_edp = None):
         attempts = 8
         stats = None
         print(f'Running {sched}')
@@ -62,15 +62,15 @@ def runRemoteScheduler(sched, job_file_idx, previous_edp = None):
         return stats
 
 def run100():
-    for i in range(1, 501):
+    for i in range(1, 400):
         print('-'*10, f'Running jobs{i}.csv','-'*10)
-        stats = runRemoteScheduler('remote_fcfs', i)
+        stats = runScheduler('fcfs', i)
         edp = None if stats is None else stats.edp
-        stats = runRemoteScheduler('remote_fcfs_bf', i, edp)
+        stats = runScheduler('easy_backfill', i, edp)
         edp = None if stats is None else stats.edp
-        stats = runRemoteScheduler('remote_aggressive_bf', i, edp)
+        stats = runScheduler('naive_backfill', i, edp)
         edp = None if stats is None else stats.edp
-        runRemoteScheduler('remote_nn3', i, edp)
+        # runRemoteScheduler('remote_nn', i, edp)
 
 
 if __name__ == "__main__":

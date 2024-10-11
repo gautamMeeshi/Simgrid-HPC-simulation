@@ -24,8 +24,10 @@ public:
   JobState job_state; // state of job
   double run_time; // scaled value of runtime used by the schedulers
   double start_time;
+  double injection_time; // time at which the job is put into the scheduler
   Job(int ji = 0, int n = 0, int tpn = 0, int cpt = 0,
-      double cc = 0.0, int prty = 0, std::vector<int> prnt = std::vector<int>()) {
+      double cc = 0.0, int prty = 0, double in_time = 0,
+      std::vector<int> prnt = std::vector<int>()) {
     job_id = ji;
     nodes = n;
     tasks_per_node = tpn;
@@ -33,6 +35,7 @@ public:
     computation_cost = cc;
     priority = prty;
     p_job_id = prnt;
+    injection_time = in_time;
     job_state = PENDING;
     run_time = (double)(cc*tpn*cpt)/((double)CPU_FREQUENCY);
     int total_threads = cpt*tpn;

@@ -34,6 +34,7 @@ class SlurmCtlD {
   std::vector<sg4::Mailbox*> SlurmDs;
   sg4::Mailbox *mymailbox;
   std::map<int, Job*> jobs;
+  std::deque<Job *> all_jobs;
   std::vector<Resource> resrcs;
   std::vector<int> node_2_job;
   std::vector<std::string> host_name;
@@ -62,7 +63,7 @@ public:
     scheduler_type = args[2];
     slurm_ctld_name = sg4::this_actor::get_host()->get_name();
     mymailbox = sg4::Mailbox::by_name(slurm_ctld_name);
-    jobs = parseJobFile(job_file_name);
+    all_jobs = parseJobFile(job_file_name);
     scheduler = new Scheduler(scheduler_type, jobs);
 
     for (unsigned int i = 3; i < args.size(); i++) {
@@ -76,6 +77,15 @@ public:
     }
     num_nodes = SlurmDs.size();
     XBT_INFO("Total number of nodes %zu", SlurmDs.size());
+  }
+
+  void injectJobs(double curr_time) {
+    while (all_jobs.size() > 0 && 
+           curr_time >= all_jobs.front()->injection_time) {
+      jobs[all_jobs.front()->job_id] = all_jobs.front();
+      scheduler->injectJob(all_jobs.front());
+      all_jobs.pop_front();
+    }
   }
 
   int receiveSlurmdMsgs() {
@@ -157,10 +167,10 @@ public:
   }
 
   void preSetup() {
-    runnable_jobs = jobs.size();
+    runnable_jobs = all_jobs.size();
     completed_jobs = 0;
-    for (int i=0; i < jobs.size(); i++) {
-      job_logs[jobs[i]->job_id] = JobLogs();
+    for (Job * jobptr: all_jobs) {
+        job_logs[jobptr->job_id] = JobLogs();
     }
   }
 
@@ -243,7 +253,7 @@ public:
     XBT_INFO("Total number of CPUs %i", free_cpu_sum);
     removeJobs();
     preSetup();
-    jobs_remaining = jobs.size(); // ASSUMPTION - all the jobs are in PENDING state
+    jobs_remaining = all_jobs.size(); // ASSUMPTION - all the jobs are in PENDING state
     scheduling_start_time = sg4::Engine::get_clock();
     job_top_time = scheduling_start_time;
 
@@ -251,12 +261,16 @@ public:
       // while there are pending jobs
       // find the number of free cpus across all the nodes
       curr_time = sg4::Engine::get_clock();
+      // put jobs into the pending queue
+      injectJobs(curr_time);
+      // receive information from the slurmd functions
       free_cpu_sum = receiveSlurmdMsgs();
       XBT_DEBUG("Number of free cpus in total %i", free_cpu_sum);
-      std::vector<SlurmCtldMsg*> scheduled_jobs = scheduler->schedule(jobs, resrcs, jobs_remaining, curr_time);
+      // get jobs to scheduled from the scheduler
+      std::vector<SlurmCtldMsg*> scheduled_jobs = scheduler->schedule(jobs, resrcs, curr_time);
       xbt_assert(scheduled_jobs.size() == SlurmDs.size(),
                  "Scheduler output size not same as the number of SlurmDs");
-      std::set<int> jobs_scheduled;
+      std::set<int> jobs_scheduled; // jobs set used only for printing
       for (int i=0; i<SlurmDs.size(); i++) {
         if (scheduled_jobs[i]->sig != RUN && !nodes[i]->is_on()) {
           continue;
@@ -267,7 +281,8 @@ public:
             SlurmDs[i]->put(scheduled_jobs[i], communicate_cost);
             node_op_log[i].push_back({curr_time, SLEEP});
             continue;
-          } else if (host_name[i] == slurm_ctld_name && node_op_log[i].back().second != SLEEP) {
+          } else if (host_name[i] == slurm_ctld_name && 
+                     node_op_log[i].size() > 0 && node_op_log[i].back().second != SLEEP) {
             node_op_log[i].push_back({curr_time, SLEEP});
           }
         } else if (scheduled_jobs[i]->sig == RUN && nodes[i]->is_on() == false) {
@@ -287,6 +302,7 @@ public:
       }
       for (auto& job_id: jobs_scheduled) {
         XBT_INFO("Started job %i", job_id);
+        jobs_remaining--;
         job_logs[job_id].start_time = curr_time;
         jobs[job_id]->start_time = curr_time;
         while (job_at_the_top < jobs.size() && jobs[job_at_the_top]->job_state != PENDING) {
@@ -319,7 +335,7 @@ public:
             SlurmDs[i]->put(new SlurmCtldMsg(IDLE), communicate_cost);
           }
           if (node_2_job[i] == -1 && host_name[i] == slurm_ctld_name &&
-              node_op_log[i].back().second != SLEEP) {
+              node_op_log[i].size() > 0 && node_op_log[i].back().second != SLEEP) {
             node_op_log[i].push_back({curr_time, SLEEP});
           }
         }

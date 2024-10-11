@@ -4,6 +4,8 @@
 #include <cmath>
 #include <map>
 #include <string>
+#include <queue>
+#include <cassert>
 #include "objects.hpp"
 #include "constants.hpp"
 
@@ -14,22 +16,25 @@ Job* getJobFromStr(std::string line) {
   std::string str = "";
   int ji, n, tpn, cpt, prty;
   double cc;
+  double in_time;
   std::vector<int> prnt;
   int count = 0;
   for (int i=0; i < line.size(); i++) {
     if (line[i] == ',' || line[i] == '(' || line[i] == ')') {
-      if (count == 0){
+      if (count == 0){ // job index
         ji = stoi(str);
-      } else if (count == 1) {
+      } else if (count == 1) { // num nodes
         n = stoi(str);
-      } else if (count == 2) {
+      } else if (count == 2) { // tasks per node
         tpn = stoi(str);
-      } else if (count == 3) {
+      } else if (count == 3) { // cpu per task
         cpt = stoi(str);
-      } else if (count == 4) {
+      } else if (count == 4) { // computation volume per thread
         cc = floor(stod(str)/(n*tpn*cpt));
-      } else if (count == 5) {
+      } else if (count == 5) { // priority
         prty = stoi(str);
+      } else if (count == 6) { // injection time
+        in_time = stoi(str);
       } else {
         if (str != "") {
           int temp = stoi(str);
@@ -42,12 +47,12 @@ Job* getJobFromStr(std::string line) {
       str+=line[i];
     }
   }
-  Job *j = new Job(ji, n, tpn, cpt, cc, prty, prnt);
+  Job *j = new Job(ji, n, tpn, cpt, cc, prty, in_time, prnt);
   return j;
 }
 
-std::map<int, Job*> parseJobFile(std::string job_file_name) {
-  std::map<int, Job*> jobs;
+std::deque<Job*> parseJobFile(std::string job_file_name) {
+  std::deque<Job*> jobs;
   std::ifstream inputFile(job_file_name);
   std::string line;
   bool skip = true;
@@ -57,7 +62,7 @@ std::map<int, Job*> parseJobFile(std::string job_file_name) {
       continue;
     }
     Job *j = getJobFromStr(line);
-    jobs[j->job_id] = j;
+    jobs.push_back(j);
   }
   // Close the file when done
   inputFile.close();
@@ -107,6 +112,7 @@ std::string convertJobs2Str(std::map<int, Job*> job_map) {
     str += std::to_string(job_ptr->cpus_per_task) + ",";
     str += std::to_string(job_ptr->computation_cost) + ",";
     str += std::to_string(job_ptr->run_time) + ",";
+    str += std::to_string(job_ptr->injection_time) + ",";
     str += "[";
     for (int i=0; i<job_ptr->p_job_id.size(); i++) {
       str += std::to_string(job_ptr->p_job_id[i]);
@@ -135,6 +141,7 @@ std::string convertJobs2Str(std::vector<Job*> job_vec) {
     str += std::to_string(job_ptr->cpus_per_task) + ",";
     str += std::to_string(job_ptr->computation_cost) + ",";
     str += std::to_string(job_ptr->run_time) + ",";
+    str += std::to_string(job_ptr->injection_time) + ",";
     str += "[";
     for (int i=0; i<job_ptr->p_job_id.size(); i++) {
       str += std::to_string(job_ptr->p_job_id[i]);
