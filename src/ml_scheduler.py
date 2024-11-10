@@ -7,66 +7,63 @@ import random
 SCHEDULER_TYPE = None
 PORT = 8080
 ADDR = "127.0.0.1"
+model = None
+model7 = None
 
-try:
-    skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-except Exception as e:
-    print(e)
-    print('PYTHON ERR: socket creation failed')
-skt.bind((ADDR, PORT))
-skt.listen(5)
-print("PYTHON INFO: socket is listening")
+def LoadModel():
+    global model
+    model = tf.keras.Sequential([
+        # Input layer: 556 features (Node and job information)
+        tf.keras.layers.Dense(512, activation='relu', input_shape=(556,)),
 
-clientSocket, addr = skt.accept()
+        # First hidden layer: 256 neurons
+        tf.keras.layers.Dense(256, activation='relu'),
 
-def LoadModel4():
-    # Input 1: Node information (300 floats)
+        # Second hidden layer: 128 neurons
+        tf.keras.layers.Dense(128, activation='relu'),
+
+        # Output layer: 64 neurons (1 output for each job, whether to run or not)
+        tf.keras.layers.Dense(64, activation='sigmoid')
+    ])
+    model.load_weights('./output/model6.2.keras')
+
+
+def LoadModel7():
+    global model7
     node_input = tf.keras.layers.Input(shape=(300,))
     node_dense_1 = tf.keras.layers.Dense(128, activation='relu')(node_input)
     node_dense_2 = tf.keras.layers.Dense(64, activation='relu')(node_dense_1)
+
     # Input 2: Job information (256 floats)
     job_input = tf.keras.layers.Input(shape=(256,))
     job_dense_1 = tf.keras.layers.Dense(128, activation='relu')(job_input)
     job_dense_2 = tf.keras.layers.Dense(64, activation='relu')(job_dense_1)
+
     # Concatenate the outputs from both paths
     concat = tf.keras.layers.Concatenate()([node_dense_2, job_dense_2])
+
     # Process the combined features
     combined_dense_1 = tf.keras.layers.Dense(128, activation='relu')(concat)
     combined_dense_2 = tf.keras.layers.Dense(64, activation='relu')(combined_dense_1)
+
     # Output layer: 64 outputs (one for each job, indicating whether it should run or not)
     output = tf.keras.layers.Dense(64, activation='sigmoid')(combined_dense_2)
-    # Define the model with two inputs
-    model = tf.keras.Model(inputs=[node_input, job_input], outputs=output)
-    # Compile the model
-    model.compile(optimizer='adam', 
-                  loss='binary_crossentropy', 
-                  metrics=['accuracy'])
-    # Model summary to see the layers and parameters
-    model.summary()
 
-def LoadModel3():
-    '''
-    Input - 150*2 (free node, (relinquish_time-curr_time)), 64*4 (computation,nodes,cum_runtime,runtime)
-    '''
-    global model3
-    model3 = tf.keras.Sequential([
-        tf.keras.layers.Dense(278, activation='tanh', input_shape=(556,)),
-        tf.keras.layers.Dense(139, activation='tanh'),
-        tf.keras.layers.Dense(64, activation='sigmoid')
-    ])
-    model3.compile(optimizer='adam', loss='mse')
-    model3.summary()
-    try:
-        model3.load_weights("./models/qmodel5.6.weights.h5")
-        print("PYTHON INFO: Model weights found, loading...")
-    except Exception as e:
-        print(e)
-    return
+    # Define the model with two inputs
+    model7 = tf.keras.Model(inputs=[node_input, job_input], outputs=output)
+
+    # Compile the model
+    # model7.compile(optimizer='adam', 
+    #                loss='binary_crossentropy', 
+    #                metrics=['accuracy'])
+    model7.load_weights('./output/model7.1.keras')
 
 def neural_network_scheduler(json_data):
-    X = np.array([list(map(float, json_data["nn_input"].split(',')))])
-    assert(X.shape == (1,556))
-    output = model3.predict(X, verbose = None)
+    global model7
+    X =list(map(float, json_data["nn_input"].split(',')))
+    X1 = np.array([X[:300]])
+    X2 = np.array([X[300:]])
+    output = model7.predict([X1, X2], verbose = None)
     output = ','.join([str(output[0][i]) for i in range(64)])
     return (output)
 
@@ -98,6 +95,17 @@ def qnn3(json_data, alpha=0.1):
     writeRunLog(list(X[0]), output)
     return ('run' + output)
 
+try:
+    skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+except Exception as e:
+    print(e)
+    print('PYTHON ERR: socket creation failed')
+skt.bind((ADDR, PORT))
+skt.listen(5)
+print("PYTHON INFO: socket is listening")
+
+clientSocket, addr = skt.accept()
+
 while True:
     req = clientSocket.recv(2**10*100).decode()
     try:
@@ -116,7 +124,7 @@ while True:
         SCHEDULER_TYPE = json_data['scheduler_type']
         print("PYTHON INFO: SCHEDULER TYPE ", SCHEDULER_TYPE)
         if (SCHEDULER_TYPE == 'remote_nn'):
-            LoadModel3()
+            LoadModel7()
             res = 'ack'
     elif operation == "schedule":
         if(SCHEDULER_TYPE == "remote_nn"):

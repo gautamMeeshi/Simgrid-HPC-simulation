@@ -104,7 +104,7 @@ public:
             output+="0";
         }
         output = output.substr(0,64);
-        log_file << input << output << '\n';
+        log_file << input << '|' << output << '\n';
         return;
     }
 

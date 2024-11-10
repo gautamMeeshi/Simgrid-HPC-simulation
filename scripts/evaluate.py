@@ -30,31 +30,30 @@ def extractStats(stdout):
 
 def run100():
     total_jobs_run = 0
-    for i in range(1,11):
+    for i in range(5,41):
         try:
             print('-'*10, f'Running jobs{i}.csv','-'*10)
-            print(f'Running fcfs')
-            result = subprocess.run(['make', 'run', 'SCHED=fcfs', f'JOB_FILE=jobs{i}.csv'],
-                                    check=True, capture_output=True, text=True)
-            fcfs_stats = extractStats(result.stderr)
-            print(fcfs_stats)
-            print(f'Running fcfs_bf')
-            result = subprocess.run(['make', 'run', 'SCHED=fcfs_backfill', f'JOB_FILE=jobs{i}.csv'],
-                                    check=True, capture_output=True, text=True)
-            fcfs_bf_stats = extractStats(result.stderr)
-            print(fcfs_bf_stats)
-            print('Running naive_bf')
-            result = subprocess.run(['make', 'run', 'SCHED=aggressive_backfill', f'JOB_FILE=jobs{i}.csv'],
-                                    check=True, capture_output=True, text=True)
-            aggr_bf_stats = extractStats(result.stderr)
-            print(aggr_bf_stats)
-            print(f'Running remote_nn3')
+            # print(f'Running fcfs')
+            # result = subprocess.run(['make', 'run', 'SCHED=fcfs', f'JOB_FILE=jobs{i}.csv'],
+            #                         check=True, capture_output=True, text=True)
+            # fcfs_stats = extractStats(result.stderr)
+            # print(fcfs_stats)
+            # print(f'Running easy_bf')
+            # result = subprocess.run(['make', 'run', 'SCHED=easy_backfill', f'JOB_FILE=jobs{i}.csv'],
+            #                         check=True, capture_output=True, text=True)
+            # fcfs_bf_stats = extractStats(result.stderr)
+            # print(fcfs_bf_stats)
+            # print('Running naive_bf')
+            # result = subprocess.run(['make', 'run', 'SCHED=naive_backfill', f'JOB_FILE=jobs{i}.csv'],
+            #                         check=True, capture_output=True, text=True)
+            # aggr_bf_stats = extractStats(result.stderr)
+            # print(aggr_bf_stats)
+            print(f'Running remote_nn')
             attempts = 8
             nn_stats = None
-            time.sleep(8)
             while attempts>0:
                 try:
-                    result = subprocess.run(['make', 'run', 'SCHED=remote_nn3', f'JOB_FILE=jobs{i}.csv'],
+                    result = subprocess.run(['make', 'run', 'SCHED=remote_nn', f'JOB_FILE=jobs{i}.csv'],
                                             check=True, capture_output=True, text=True)
                     nn_stats = extractStats(result.stderr)
                     attempts = 0

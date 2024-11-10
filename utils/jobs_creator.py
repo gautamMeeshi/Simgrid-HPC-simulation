@@ -61,5 +61,5 @@ def CreateJobFile(file_path):
         if ((i+1)%10 == 0):
             injection_time += 3600 # input the jobs every 1 hour
 
-for i in range(0,400):
+for i in range(0,40):
     CreateJobFile(f'../input/jobs/jobs{i+1}.csv')

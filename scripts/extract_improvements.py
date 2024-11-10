@@ -46,7 +46,7 @@ def runScheduler(sched, job_file_idx, previous_edp = None):
         stats = None
         print(f'Running {sched}')
         while attempts > 0:
-            killPython3Processes()
+            # killPython3Processes()
             time.sleep(8)
             try:
                 result = subprocess.run(['make', 'run', f'SCHED={sched}', f'JOB_FILE=jobs{job_file_idx}.csv'],
