@@ -248,8 +248,15 @@ public:
 
     int assignJob2Nodes(Job *job, std::vector<Resource> &resrc,
                         std::vector<SlurmCtldMsg*> &res, int node_idx,
-                        int curr_time, std::vector<double> relinquish_times = std::vector<double>(),
-                        bool fill_vector = false) {
+                        int curr_time) {
+        std::vector<double> temp = {};
+        return assignJob2Nodes(job, resrc, res, node_idx, curr_time, temp, false);
+    }
+
+    int assignJob2Nodes(Job *job, std::vector<Resource> &resrc,
+                        std::vector<SlurmCtldMsg*> &res, int node_idx,
+                        int curr_time, std::vector<double> &relinquish_times,
+                        bool fill_vector) {
         int nodes_distributed_on = 0;
         while (node_idx < resrc.size()) { // iterate over the nodes
             if (resrc[node_idx].node_state == FREE) {
@@ -296,7 +303,7 @@ public:
 
         for (int j=0; j<resrc.size(); j++) {
             if (resrc[j].node_state == FREE){
-                total_free_nodes ++;
+                total_free_nodes++;
             } else {
                 relinquish_times.push_back(resrc[j].relinquish_time);
             }
