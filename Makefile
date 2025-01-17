@@ -10,6 +10,7 @@ run:
 	./scripts/run.sh ${SCHED} ${JOB_FILE}
 
 extract_improvements:
+	mkdir -p improvements
 	python3 ./scripts/extract_improvements.py
 
 learn:
