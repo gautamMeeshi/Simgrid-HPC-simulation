@@ -26,28 +26,30 @@ def extractStats(stdout):
     res.resrc_util = float(temp[0].split()[-1][:-1])
     temp = list(filter( lambda x: 'Average waiting time' in x, stdout))
     res.avg_wait_time = float(temp[0].split()[-1][:-1])
+    temp = list(filter( lambda x: 'Average turnaround time' in x, stdout))
+    res.avg_turnaround_time = float(temp[0].split()[-1][:-1])
     return res
 
 def run100():
     total_jobs_run = 0
-    for i in range(5,41):
+    for i in range(401,441):
         try:
             print('-'*10, f'Running jobs{i}.csv','-'*10)
-            # print(f'Running fcfs')
-            # result = subprocess.run(['make', 'run', 'SCHED=fcfs', f'JOB_FILE=jobs{i}.csv'],
-            #                         check=True, capture_output=True, text=True)
-            # fcfs_stats = extractStats(result.stderr)
-            # print(fcfs_stats)
-            # print(f'Running easy_bf')
-            # result = subprocess.run(['make', 'run', 'SCHED=easy_backfill', f'JOB_FILE=jobs{i}.csv'],
-            #                         check=True, capture_output=True, text=True)
-            # fcfs_bf_stats = extractStats(result.stderr)
-            # print(fcfs_bf_stats)
-            # print('Running naive_bf')
-            # result = subprocess.run(['make', 'run', 'SCHED=naive_backfill', f'JOB_FILE=jobs{i}.csv'],
-            #                         check=True, capture_output=True, text=True)
-            # aggr_bf_stats = extractStats(result.stderr)
-            # print(aggr_bf_stats)
+            print(f'Running fcfs')
+            result = subprocess.run(['make', 'run', 'SCHED=fcfs', f'JOB_FILE=jobs{i}.csv'],
+                                    check=True, capture_output=True, text=True)
+            fcfs_stats = extractStats(result.stderr)
+            print(fcfs_stats)
+            print(f'Running easy_bf')
+            result = subprocess.run(['make', 'run', 'SCHED=easy_backfill', f'JOB_FILE=jobs{i}.csv'],
+                                    check=True, capture_output=True, text=True)
+            fcfs_bf_stats = extractStats(result.stderr)
+            print(fcfs_bf_stats)
+            print('Running naive_bf')
+            result = subprocess.run(['make', 'run', 'SCHED=naive_backfill', f'JOB_FILE=jobs{i}.csv'],
+                                    check=True, capture_output=True, text=True)
+            aggr_bf_stats = extractStats(result.stderr)
+            print(aggr_bf_stats)
             print(f'Running remote_nn')
             attempts = 8
             nn_stats = None

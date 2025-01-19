@@ -21,6 +21,7 @@ int started = 0;
 int completed = 0;
 double AVG_RESRC_UTIL = 0.0;
 double AVG_WAITING_TIME = 0.0;
+double AVG_TURNAROUND_TIME = 0.0;
 
 class SlurmCtlD {
   /*
@@ -115,6 +116,7 @@ public:
             XBT_INFO("Completed job %i", c_job_id);
             completed_jobs++;
             job_logs[c_job_id].end_time = sg4::Engine::get_clock();
+            job_logs[c_job_id].turnaround_time = job_logs[c_job_id].end_time - jobs[c_job_id]->injection_time;
           }
         }
       }
@@ -217,11 +219,13 @@ public:
     }
     stats_file.close();
     std::ofstream job_stats_file("output/job_stats.csv");
-    job_stats_file << "job_id, start_time, end_time, runtime, waiting_time, nodes_run_on\n";
+    job_stats_file << "job_id, start_time, end_time, runtime, waiting_time, turnaround_time, nodes_run_on\n";
     for (auto it = job_logs.begin(); it != job_logs.end(); it++) {
       job_stats_file << it->first << ", " << it->second.start_time << ", " << it->second.end_time << ", ";
-      job_stats_file << it->second.end_time - it->second.start_time << ", " << it->second.waiting_time <<  ", (";
+      job_stats_file << it->second.end_time - it->second.start_time << ", " << it->second.waiting_time <<
+      it->second.turnaround_time <<  ", (";
       AVG_WAITING_TIME += it->second.waiting_time;
+      AVG_TURNAROUND_TIME += it->second.turnaround_time;
       for (int i=0; i < it->second.nodes_running.size(); i++) {
         job_stats_file << it->second.nodes_running[i];
         if (i < it->second.nodes_running.size()-1) {
@@ -233,6 +237,7 @@ public:
     job_stats_file.close();
     AVG_RESRC_UTIL = storeResourceUtlizationStats(node_op_log, completion_time);
     AVG_WAITING_TIME = AVG_WAITING_TIME/job_logs.size();
+    AVG_TURNAROUND_TIME = AVG_TURNAROUND_TIME/job_logs.size();
   }
 
   void operator()()
@@ -494,6 +499,7 @@ void generateStats(sg4::Engine &e, double exec_time) {
   XBT_INFO("EDP of the system = %lfGJs", total_energy_consumption*exec_time/1000000000);
   XBT_INFO("Resource utilization = %lf%%", AVG_RESRC_UTIL*100);
   XBT_INFO("Average waiting time = %lfs", AVG_WAITING_TIME);
+  XBT_INFO("Average turnaround time = %lfs", AVG_TURNAROUND_TIME);
   stats_file.close();
 }
 

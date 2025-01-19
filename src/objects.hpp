@@ -114,11 +114,13 @@ public:
 
 class JobLogs {
 public:
+    double turnaround_time;
     double start_time;
     double end_time;
     double waiting_time = 0;
     std::vector<int> nodes_running;
     JobLogs (double st = 0, double et = 0, std::vector<int> nr = std::vector<int>()) {
+        turnaround_time = 0;
         start_time = st;
         end_time = et;
         nodes_running = nr;

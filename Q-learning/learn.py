@@ -10,11 +10,9 @@ def loadTrainingData(filepath):
     X2=[]
     Y=[]
     for line in file:
-        x = line[:-1].split(',')
-        y = x[-1][-64:]
-        x[-1] = x[-1][:-64]
-        x = list(map(float, x))
-        y = list(map(float, list(y)))
+        s = line[:-1].split('|')
+        x = list(map(float, s[0].split(',')))
+        y = list(map(float, list(s[1])))
         X1.append(x[:300])
         X2.append(x[300:])
         Y.append(y)

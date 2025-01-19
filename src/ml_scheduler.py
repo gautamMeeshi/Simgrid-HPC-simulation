@@ -56,7 +56,7 @@ def LoadModel7():
     # model7.compile(optimizer='adam', 
     #                loss='binary_crossentropy', 
     #                metrics=['accuracy'])
-    model7.load_weights('./output/model7.1.keras')
+    model7.load_weights('./models/model7.1.keras')
 
 def neural_network_scheduler(json_data):
     global model7
