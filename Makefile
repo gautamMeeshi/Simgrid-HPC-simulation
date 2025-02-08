@@ -18,3 +18,6 @@ learn:
 
 evaluate:
 	python3 ./scripts/evaluate.py
+
+learn_transformer:
+	python3 ./Q-learning/transformer.py
