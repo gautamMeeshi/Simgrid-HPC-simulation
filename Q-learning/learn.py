@@ -118,7 +118,7 @@ Y = np.array(Y)
 X1_train, X1_val, X2_train, X2_val, Y_train, Y_val = train_test_split(X1, X2, Y, test_size=0.1, random_state=42)
 
 checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath='./models/model7.1.keras',     # Path where the best model will be saved
+    filepath='./models/model7.2.keras',     # Path where the best model will be saved
     monitor='val_accuracy',       # Monitor validation accuracy
     save_best_only=True,          # Save only the model with the best accuracy
     mode='max',                   # 'max' since we want to maximize accuracy

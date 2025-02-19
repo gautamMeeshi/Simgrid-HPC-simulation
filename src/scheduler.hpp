@@ -54,8 +54,9 @@ public:
             if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
                 printf("\nPANIC:Invalid address/ Address not supported \n");
             }
-            if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-                printf("\nPANIC:Connection Failed \n");
+            int ret = connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+            if (ret < 0) {
+                printf("\nPANIC:Connection Failed, Error code: %d\n", ret);
             }
             pt::ptree root;
             root.put("state", "on");
@@ -438,12 +439,12 @@ public:
         root.put("nn_input", nn_input);
         root.put("state", "on");
         root.put("operation", "schedule");
+
         sendPtree(root);
 
         //recv output from NN model
-        char buffer[1024] = {0};
-        int output_len = read(sock, buffer, 1024);
-
+        char buffer[4096] = {0};
+        int output_len = read(sock, buffer, 4096);
         std::string nn_output = parseNNOutput(buffer, output_len, jobs, total_free_nodes);
         int node_idx=0;
         bool schedule = true;
@@ -479,6 +480,8 @@ public:
         } else if (type == "naive_backfill") {
             res = naive_backfill_scheduler(runnable_jobs, resrc, curr_time);
         } else if (type == "remote_nn") {
+            res = remote_nn_scheduler(runnable_jobs, resrc, curr_time);
+        } else if (type == "remote_transformer") {
             res = remote_nn_scheduler(runnable_jobs, resrc, curr_time);
         } else if (type == "fcfs") {
             res = fcfs_scheduler(runnable_jobs, resrc, curr_time);

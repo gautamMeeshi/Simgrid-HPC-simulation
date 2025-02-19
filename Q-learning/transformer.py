@@ -117,26 +117,34 @@ def load_train_val_data():
 # === Initialize Model ===
 model = build_scheduler_transformer(
     embed_dim=64,  # Reduce from 128
-    num_heads=4,   # Reduce from 8
-    num_layers=2    # Reduce from 4
+    num_heads=2,   # Reduce from 8
+    num_layers=2,    # Reduce from 4
+    ff_dim=128
 )
 model.summary()
 
-loss_fn = keras.losses.BinaryCrossentropy()
 
-optimizer = keras.optimizers.AdamW(learning_rate=1e-4)
+def pairwise_ranking_loss(y_true, y_pred):
+    margin = 0.1  # Small margin for ranking
+    return tf.reduce_mean(tf.nn.relu(margin - (y_pred - y_true)))
+
+# loss_fn = keras.losses.BinaryCrossentropy()
+loss_fn = pairwise_ranking_loss
+
+# optimizer = keras.optimizers.AdamW(learning_rate=1e-4)
+optimizer = keras.optimizers.SGD(learning_rate=1e-3, momentum=0.9)
 
 # Compile Model
-model.compile(optimizer=optimizer, loss=loss_fn, metrics=["accuracy"])
+model.compile(optimizer=optimizer, loss=loss_fn)
 
 train_dataset, val_dataset = load_train_val_data()
 
 # Train the model
 history = model.fit(
     train_dataset,  # (job_inputs, node_inputs), targets
-    epochs=20,
+    epochs=1,
     validation_data=val_dataset,
     verbose=2
 )
 
-model.save("scheduler_transformer_model.h5")
+model.save("scheduler_transformer_model_sgd1.keras")
